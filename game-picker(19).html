@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQUAD.GG</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--bg2:#0a0a0a;--panel:#141414;--panel2:#1a1a1a;
+  --border:#2a2a2a;--border2:#3a3a3a;
+  --text:#fff;--text2:#666;--text3:#999;
+  --green:#22c55e;--red:#ef4444;--yellow:#eab308;
+  --blue:#0047AB;--blue-l:#1a5fd4;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased;}
+
+/* LOGIN */
+#loginScreen:not([hidden]){display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
+.login-icon-wrap{margin-bottom:1.5rem;position:relative;width:84px;height:84px;}
+.login-icon-wrap canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:84px;height:84px;border-radius:8px;}
+.logo{font-size:clamp(1.4rem,4vw,2rem);font-weight:900;letter-spacing:-1px;margin-bottom:.2rem;text-align:center;}
+.logo span{color:var(--green);}
+.tagline{font-size:.8rem;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;margin-bottom:3rem;}
+.login-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:2rem;width:100%;max-width:400px;}
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.75rem;}
+.tab-btn{flex:1;background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.65rem;cursor:pointer;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab-btn.active{color:#fff;border-bottom-color:#fff;}
+.tab-btn:hover:not(.active){color:var(--text3);}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:.4rem;}
+.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:#fff;font-family:'Inter',sans-serif;font-size:.9rem;padding:.65rem .85rem;outline:none;border-radius:6px;transition:border-color .15s;}
+.form-input:focus{border-color:var(--blue-l);}
+.form-input::placeholder{color:var(--text2);}
+.error-msg{font-size:.78rem;color:var(--red);margin-top:.85rem;text-align:center;min-height:1.2em;font-weight:500;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;background:none;border:1px solid var(--border2);color:var(--text3);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.1rem;cursor:pointer;border-radius:6px;transition:all .15s;white-space:nowrap;}
+.btn:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.04);}
+.btn-full{width:100%;}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-primary:hover{background:var(--blue-l);border-color:var(--blue-l);color:#fff;}
+.btn-danger{border-color:var(--red);color:var(--red);}
+.btn-danger:hover{background:rgba(239,68,68,.08);}
+.btn-sm{padding:.35rem .7rem;font-size:.65rem;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn:disabled:hover{background:none;border-color:var(--border2);color:var(--text2);}
+
+/* TOGGLE */
+.toggle-wrap{display:flex;align-items:center;gap:.5rem;}
+.toggle-wrap span{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);}
+.toggle-sw{width:36px;height:19px;border-radius:10px;background:var(--border2);position:relative;cursor:pointer;border:none;outline:none;transition:background .18s;flex-shrink:0;}
+.toggle-sw::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:var(--text2);top:3px;left:3px;transition:all .18s;}
+.toggle-sw.on{background:rgba(34,197,94,.3);}
+.toggle-sw.on::after{left:20px;background:var(--green);}
+
+/* APP */
+#appScreen{display:none;}
+#appScreen.visible{display:block!important;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-size:1rem;font-weight:900;letter-spacing:-1px;}
+.topbar-logo span{color:var(--green);}
+.user-pill{display:flex;align-items:center;gap:.5rem;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:.3rem .75rem .3rem .3rem;}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name-top{font-size:.8rem;font-weight:600;}
+
+/* LAYOUT */
+.app-layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 49px);}
+.sidebar{background:var(--bg);border-right:1px solid var(--border);padding:1.25rem 1rem;overflow-y:auto;max-height:calc(100vh - 49px);position:sticky;top:49px;}
+.sidebar-section{margin-bottom:2rem;}
+.sidebar-title{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);}
+.player-item{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.4rem .5rem;border-radius:6px;margin-bottom:.25rem;border:1px solid transparent;transition:background .1s;}
+.player-item:hover{background:var(--panel);}
+.player-item.you{background:var(--panel);border-color:var(--border);}
+.player-item.inactive{opacity:.4;}
+.player-item.inactive .player-name-side{text-decoration:line-through;}
+.player-left{display:flex;align-items:center;gap:.5rem;min-width:0;flex:1;}
+.player-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.player-dot.other{background:var(--blue-l);}
+.player-name-side{font-size:.82rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.you-tag{font-size:.65rem;color:var(--text2);font-weight:400;}
+.player-toggle{width:30px;height:16px;border-radius:8px;background:var(--border2);position:relative;flex-shrink:0;cursor:pointer;border:none;outline:none;transition:background .2s;}
+.player-toggle::after{content:'';position:absolute;width:10px;height:10px;border-radius:50%;background:var(--text2);top:3px;left:3px;transition:all .18s;}
+.player-toggle.on{background:rgba(34,197,94,.25);}
+.player-toggle.on::after{left:17px;background:var(--green);}
+.add-game-form{display:flex;flex-direction:column;gap:.5rem;}
+.form-select{width:100%;background:var(--bg2);border:1px solid var(--border);color:#fff;font-family:'Inter',sans-serif;font-size:.82rem;padding:.5rem .75rem;outline:none;border-radius:6px;cursor:pointer;}
+.form-select option{background:var(--panel);}
+.form-select:focus{border-color:var(--blue-l);}
+.add-row{display:flex;gap:.5rem;}
+
+/* MAIN */
+.main-content{padding:1.5rem;overflow-x:auto;background:var(--bg2);}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+.section-title{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--panel);}
+table{border-collapse:collapse;width:100%;min-width:600px;}
+thead th{background:var(--panel2);padding:.6rem .85rem;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;color:var(--text2);}
+thead th.you{color:var(--green);}
+thead th.game-col{text-align:left;min-width:200px;}
+thead th.inactive-col{opacity:.3;text-decoration:line-through;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .08s;}
+tbody tr:hover{background:rgba(255,255,255,.025);}
+tbody tr.highlight{border-left:2px solid var(--green);}
+td{padding:.55rem .85rem;border-right:1px solid var(--border);vertical-align:middle;}
+.game-name{font-size:.88rem;font-weight:500;}
+.game-name-wrap{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
+.score-cell{text-align:center;font-size:.9rem;font-weight:700;min-width:56px;font-variant-numeric:tabular-nums;}
+.score-high{color:var(--green);}
+.score-mid{color:var(--yellow);}
+.score-low{color:var(--text2);}
+.check-cell{text-align:center;}
+.game-check{appearance:none;width:18px;height:18px;border:1.5px solid var(--border2);background:var(--bg2);border-radius:4px;cursor:pointer;position:relative;transition:all .12s;display:inline-block;vertical-align:middle;}
+.game-check:checked{background:var(--green);border-color:var(--green);}
+.game-check:checked::after{content:'';position:absolute;top:2px;left:5px;width:5px;height:9px;border:2px solid #000;border-top:none;border-left:none;transform:rotate(45deg);}
+.game-check:disabled{opacity:.35;cursor:not-allowed;}
+.game-check.others-check{cursor:default;}
+.game-check.others-check:checked{background:var(--blue);border-color:var(--blue);}
+.game-check.others-check:checked::after{border-color:#fff;}
+
+/* BELT STRIPE — 21px wide (simulates 7×7 at 3px/pixel) */
+.tag-stripe-cell{width:21px!important;min-width:21px!important;max-width:21px!important;padding:0!important;border-right:1px solid var(--border)!important;overflow:hidden;vertical-align:top;}
+.tag-stripe-cell canvas{display:block;width:21px;image-rendering:pixelated;image-rendering:crisp-edges;}
+
+/* CAT ROW */
+tr.cat-row td{padding:.3rem .85rem;border-top:1px solid var(--border);}
+.cat-row-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);}
+tr.cat-row{cursor:grab;}
+tr.cat-row.dragging-cat{opacity:.35;}
+
+/* STARS */
+.star-btn{background:none;border:none;cursor:pointer;font-size:.95rem;line-height:1;padding:0;color:var(--border2);transition:color .12s,transform .12s;}
+.star-btn:hover{color:var(--yellow);transform:scale(1.2);}
+.star-btn.lit{color:var(--yellow);}
+.star-btn:disabled{opacity:.25;cursor:not-allowed;transform:none;}
+.star-namelist{font-size:.62rem;color:var(--yellow);opacity:.8;display:flex;gap:.25rem;flex-wrap:wrap;margin-left:2px;}
+.star-nametag{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);border-radius:3px;padding:0 .3rem;line-height:1.6;}
+
+/* TAG BTN */
+.tag-btn{background:none;border:none;cursor:pointer;padding:0 2px;line-height:1;opacity:.4;transition:opacity .12s;font-size:.8rem;color:var(--text2);}
+.tag-btn:hover,.tag-btn.has-tag{opacity:1;}
+
+/* TAG PICKER */
+.tag-picker-popup{position:fixed;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:.85rem;z-index:500;width:240px;box-shadow:0 8px 32px rgba(0,0,0,.7);}
+.tag-picker-popup h4{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:.6rem;}
+.tag-section-label{font-size:.6rem;color:var(--text2);margin-bottom:.35rem;margin-top:.5rem;}
+.tag-shape-row{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.25rem;}
+.tag-shape-opt{width:26px;height:26px;cursor:pointer;border:1.5px solid var(--border2);border-radius:3px;display:flex;align-items:center;justify-content:center;transition:border-color .12s,background .12s;overflow:hidden;}
+.tag-shape-opt:hover{border-color:var(--text3);}
+.tag-shape-opt.sel{border-color:#fff;background:rgba(255,255,255,.08);}
+.tag-shape-opt canvas{width:21px;height:21px;image-rendering:pixelated;image-rendering:crisp-edges;}
+.tag-color-row{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.25rem;}
+.tag-color-swatch{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color .1s;}
+.tag-color-swatch:hover{border-color:var(--text3);}
+.tag-color-swatch.sel{border-color:#fff;}
+.tag-hex-row{display:flex;gap:.4rem;align-items:center;margin:.5rem 0;}
+.tag-hex-input{flex:1;background:var(--bg2);border:1px solid var(--border);color:#fff;font-family:'Inter',sans-serif;font-size:.78rem;padding:.3rem .5rem;border-radius:4px;outline:none;}
+.tag-hex-input:focus{border-color:var(--blue-l);}
+.tag-hex-preview{width:22px;height:22px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;}
+.tag-picker-actions{display:flex;gap:.4rem;justify-content:flex-end;margin-top:.5rem;}
+
+/* DEL */
+.del-btn{background:none;border:none;color:var(--border2);cursor:pointer;font-size:.8rem;padding:.15rem .35rem;transition:color .12s;border-radius:4px;line-height:1;}
+.del-btn:hover{color:var(--red);}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text2);}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+.empty-text{font-size:.85rem;font-weight:500;color:var(--text2);}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.75rem;width:100%;max-width:460px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;line-height:1;transition:color .12s;}
+.modal-close:hover{color:#fff;}
+.modal-note{font-size:.78rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.6;}
+.admin-user-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;margin-bottom:.3rem;border:1px solid var(--border);border-radius:6px;background:var(--bg2);gap:1rem;}
+.admin-user-name{font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* COMPRESSED */
+tr.cat-compressed~tr.game-row{display:none;}
+tr.compressed-body-row{display:table-row!important;}
+.compressed-cell{padding:.5rem .85rem!important;}
+.compressed-wrap{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;}
+.compact-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .5rem;border-radius:4px;background:var(--panel2);border:1px solid var(--border);cursor:pointer;font-size:.78rem;font-weight:500;color:var(--text3);transition:all .12s;user-select:none;}
+.compact-chip:hover{border-color:var(--border2);color:#fff;}
+.compact-chip.voted{background:rgba(34,197,94,.1);border-color:var(--green);color:var(--green);}
+.chip-score{font-size:.65rem;opacity:.6;margin-left:.15rem;}
+.compact-chip canvas{image-rendering:pixelated;image-rendering:crisp-edges;}
+
+/* DRAG */
+.drag-handle{cursor:grab;color:var(--border2);font-size:.85rem;padding:0 .3rem 0 0;flex-shrink:0;user-select:none;line-height:1;transition:color .12s;}
+.drag-handle:hover{color:var(--text3);}
+tr.dragging{opacity:.35;}
+tr.drag-over-above td{border-top:2px solid var(--blue-l)!important;}
+tr.drag-over-below td{border-bottom:2px solid var(--blue-l)!important;}
+tr.cat-row.drag-over-cat td{background:rgba(26,95,212,.1)!important;border-top:2px solid var(--blue-l)!important;}
+tr.cat-row.drag-over-cat-above td{border-top:2px solid var(--yellow)!important;}
+
+#debugBar{display:none;position:fixed;bottom:0;left:0;right:0;background:#1a0000;border-top:1px solid var(--red);color:var(--red);font-size:.72rem;padding:.4rem 1rem;z-index:9998;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+@media(max-width:768px){.app-layout{grid-template-columns:1fr;}.sidebar{position:static;max-height:none;border-right:none;border-bottom:1px solid var(--border);}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-icon-wrap"><canvas id="loginIconCanvas" width="28" height="28"></canvas></div>
+  <div class="logo">SQUAD<span>.GG</span></div>
+  <div class="tagline">What are we playing tonight?</div>
+  <div class="login-box">
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabLogin">Login</button>
+      <button class="tab-btn" id="tabRegister">New Player</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="loginUser" type="text" placeholder="your username" autocomplete="off"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="loginPass" type="password" placeholder="group password" autocomplete="off"/></div>
+      <button class="btn btn-primary btn-full">Sign In</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="form-group"><label class="form-label">Choose Username</label><input class="form-input" id="regUser" type="text" placeholder="your gamer tag" autocomplete="off" maxlength="20"/></div>
+      <div class="form-group"><label class="form-label">Group Password</label><input class="form-input" id="regPass" type="password" placeholder="ask your squad" autocomplete="off"/></div>
+      <button class="btn btn-primary btn-full">Create Account</button>
+    </div>
+    <div class="error-msg" id="authError"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen">
+  <div class="topbar">
+    <div class="topbar-logo">SQUAD<span>.GG</span></div>
+    <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+      <span style="font-size:.75rem;color:var(--text2);"><span id="onlineCount" style="color:#fff;font-weight:700;">0</span> players</span>
+      <div class="toggle-wrap">
+        <span>Category</span>
+        <button class="toggle-sw" id="sortToggle"></button>
+        <span>By Votes</span>
+      </div>
+      <div class="toggle-wrap">
+        <span>Compact</span>
+        <button class="toggle-sw" id="expCompressToggle"></button>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar" id="userAvatar">??</div>
+        <span class="user-name-top" id="userNameTop"></span>
+      </div>
+      <button class="btn btn-sm" id="manageBtn">Manage</button>
+      <button class="btn btn-danger btn-sm" id="logoutBtn">Log out</button>
+    </div>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Players</div>
+        <div id="playersList"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Add Game</div>
+        <div class="add-game-form">
+          <input class="form-input" id="newGameName" placeholder="Game name…" maxlength="40"/>
+          <select class="form-select" id="newGameCat"></select>
+          <button class="btn btn-primary btn-sm" id="addGameBtn">Add Game</button>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Add Category</div>
+        <div class="add-row">
+          <input class="form-input" id="newCatName" placeholder="Category name…" maxlength="24" style="flex:1;font-size:.85rem;padding:.4rem .7rem;"/>
+          <button class="btn btn-sm" id="addCatBtn">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="main-content">
+      <div class="section-header"><div class="section-title">Tonight's Game Board</div></div>
+      <div class="table-wrap">
+        <table id="gameTable"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🎮</div>
+        <div class="empty-text">No games yet — add some above</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box">
+    <button class="modal-close" id="adminClose">&#x2715;</button>
+    <div class="modal-title">Manage</div>
+    <div class="modal-note">Toggle players absent or remove them from the squad.</div>
+    <div id="adminUserList"></div>
+  </div>
+</div>
+
+<!-- TAG PICKER -->
+<div id="tagPicker" style="display:none;" class="tag-picker-popup">
+  <h4>Game Tag</h4>
+  <div class="tag-section-label">Shape</div>
+  <div class="tag-shape-row" id="tagShapeRow"></div>
+  <div class="tag-section-label">Color</div>
+  <div class="tag-color-row" id="tagColorRow"></div>
+  <div class="tag-hex-row">
+    <input class="tag-hex-input" id="tagHexInput" placeholder="#rrggbb" maxlength="7"/>
+    <div class="tag-hex-preview" id="tagHexPreview"></div>
+  </div>
+  <div class="tag-picker-actions">
+    <button class="btn btn-sm btn-danger" id="tagClearBtn">Clear</button>
+    <button class="btn btn-sm btn-primary" id="tagApplyBtn">Apply</button>
+  </div>
+</div>
+
+<div id="debugBar"></div>
+
+<script type="module">
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, remove, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── GLOBALS FIRST ────────────────────────────────────────────
+const el  = id => document.getElementById(id);
+const esc = s  => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function setErr(m){ const e=el("authError"); if(e) e.textContent=m?"⚠ "+m:""; }
+function setBusy(on){ const e=el("authError"); if(e) e.textContent=on?"● Connecting…":""; }
+
+window.switchTab = tab => {
+  el("loginForm").style.display    = tab==="login"    ? "" : "none";
+  el("registerForm").style.display = tab==="register" ? "" : "none";
+  el("tabLogin").classList.toggle("active",    tab==="login");
+  el("tabRegister").classList.toggle("active", tab==="register");
+  setErr("");
+};
+window.doLogin    = () => { setBusy(true); loginAsync().catch(e=>{setBusy(false);setErr(e.message);}); };
+window.doRegister = () => { setBusy(true); registerAsync().catch(e=>{setBusy(false);setErr(e.message);}); };
+window.doLogout   = () => logout();
+window.toggleSort = () => { sortByVotes=!sortByVotes; el("sortToggle").classList.toggle("on",sortByVotes); savePrefs(); renderTable(); };
+window.toggleExpCompress = () => { expCompress=!expCompress; el("expCompressToggle").classList.toggle("on",expCompress); savePrefs(); renderTable(); };
+window.toggleGame        = (g,v) => doToggleGame(g,v);
+window.toggleStar        = g    => doToggleStar(g);
+window.togglePlayerActive= u    => doTogglePlayerActive(u);
+window.addGame           = ()   => doAddGame();
+window.removeGame        = g    => doRemoveGame(g);
+window.addCategory       = ()   => doAddCategory();
+window.openAdminModal    = ()   => doOpenAdmin();
+window.closeAdminModal   = ()   => { el("adminModal").style.display="none"; };
+window.deleteUser        = u    => doDeleteUser(u);
+window.openTagPicker     = (g,b)=> doOpenTagPicker(g,b);
+window.pickShape         = i    => doPickShape(i);
+window.pickColor         = c    => doPickColor(c);
+window.applyTag          = ()   => doApplyTag();
+window.clearTag          = ()   => doClearTag();
+
+document.addEventListener("keydown", e => {
+  if(e.key!=="Enter") return;
+  if(el("loginForm")?.style.display!=="none") window.doLogin();
+  else if(el("registerForm")?.style.display!=="none") window.doRegister();
+});
+
+// ── FIREBASE ─────────────────────────────────────────────────
+const app = initializeApp({
+  apiKey:"AIzaSyAsLO-TJCkNQWgL0o-svsp0gNkcHvae3kA",
+  authDomain:"squad-gg-c4db0.firebaseapp.com",
+  databaseURL:"https://squad-gg-c4db0-default-rtdb.firebaseio.com",
+  projectId:"squad-gg-c4db0",
+  storageBucket:"squad-gg-c4db0.firebasestorage.app",
+  messagingSenderId:"4300158061",
+  appId:"1:4300158061:web:a24b658ccfbcaa895cfb64"
+});
+const db = getDatabase(app);
+const GROUP_PASS="ducksalad", MAX_STARS=3;
+const R      = p     => ref(db,p);
+const fbGet  = p     => get(R(p)).then(s=>s.exists()?s.val():null);
+const fbSet  = (p,v) => set(R(p),v);
+const fbUpd  = (p,v) => update(R(p),v);
+const fbDel  = p     => remove(R(p));
+const toArr  = v => !v?[]:Array.isArray(v)?v.filter(Boolean):Object.values(v).filter(Boolean);
+const safeKey= s => s.replace(/[.#$[\]\/]/g,"_");
+function dbg(m){ try{const b=el("debugBar");b.style.display="block";b.textContent=m;}catch(e){} console.log("[SQ]",m); }
+
+// ── PIXEL ICON SYSTEM ────────────────────────────────────────
+// Each icon is a 7×7 grid encoded as 7 rows of 7-bit numbers (bit 6 = leftmost pixel)
+const ICONS = [
+  // 0: cross
+  [[0,0,1,1,1,0,0],[0,0,1,1,1,0,0],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1],[0,0,1,1,1,0,0],[0,0,1,1,1,0,0]],
+  // 1: ring
+  [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0]],
+  // 2: square ring
+  [[1,1,1,1,1,1,1],[1,1,0,0,0,1,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,0,0,0,0,0,1],[1,1,0,0,0,1,1],[1,1,1,1,1,1,1]],
+  // 3: hourglass
+  [[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[0,0,1,1,1,0,0],[0,0,0,1,0,0,0],[0,0,1,1,1,0,0],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1]],
+  // 4: crown
+  [[1,0,0,1,0,0,1],[1,0,1,1,1,0,1],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1],[0,0,0,0,0,0,0]],
+  // 5: chevron up
+  [[0,0,0,1,0,0,0],[0,0,1,0,1,0,0],[0,1,0,0,0,1,0],[1,0,0,0,0,0,1],[0,0,0,0,0,0,0],[0,0,0,1,0,0,0],[0,0,0,1,0,0,0]],
+  // 6: checker
+  [[1,1,0,0,1,1,0],[1,1,0,0,1,1,0],[0,0,1,1,0,0,1],[0,0,1,1,0,0,1],[1,1,0,0,1,1,0],[1,1,0,0,1,1,0],[0,0,1,1,0,0,1]],
+  // 7: diamond
+  [[0,0,0,1,0,0,0],[0,0,1,1,1,0,0],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[0,0,1,1,1,0,0],[0,0,0,1,0,0,0]],
+  // 8: target
+  [[0,0,1,1,1,0,0],[0,1,0,0,0,1,0],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[1,0,1,1,1,0,1],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0]],
+  // 9: bolt
+  [[0,0,1,1,1,0,0],[0,1,1,1,0,0,0],[0,1,1,0,0,0,0],[1,1,1,1,1,1,0],[0,0,0,0,1,1,0],[0,0,0,1,1,1,0],[0,0,1,1,1,0,0]],
+  // 10: gear
+  [[0,0,1,0,1,0,0],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[0,0,1,0,1,0,0]],
+  // 11: spiral
+  [[1,1,1,1,1,1,0],[1,0,0,0,0,1,0],[1,0,1,1,0,1,0],[1,0,1,0,0,1,0],[1,0,1,1,1,1,0],[1,0,0,0,0,0,0],[1,1,1,1,1,1,1]],
+  // 12: hexagon
+  [[0,0,1,1,1,0,0],[0,1,1,0,1,1,0],[1,1,0,0,0,1,1],[1,0,0,0,0,0,1],[1,1,0,0,0,1,1],[0,1,1,0,1,1,0],[0,0,1,1,1,0,0]],
+  // 13: skull
+  [[0,0,1,1,1,0,0],[0,1,1,1,1,1,0],[1,0,1,0,1,0,1],[1,1,1,1,1,1,1],[0,1,0,1,0,1,0],[0,1,1,0,1,1,0],[0,0,1,1,1,0,0]],
+  // 14: heart
+  [[0,1,1,0,1,1,0],[1,1,1,1,1,1,1],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[0,0,1,1,1,0,0],[0,0,0,1,0,0,0],[0,0,0,0,0,0,0]],
+  // 15: anchor
+  [[0,0,1,1,1,0,0],[0,0,0,1,0,0,0],[0,1,1,1,1,1,0],[0,0,0,1,0,0,0],[1,0,0,1,0,0,1],[1,1,0,1,0,1,1],[0,1,1,1,1,1,0]],
+  // 16: shield
+  [[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[1,1,0,1,0,1,1],[1,0,0,1,0,0,1],[0,1,0,1,0,1,0],[0,0,1,1,1,0,0],[0,0,0,1,0,0,0]],
+  // 17: flower
+  [[0,1,0,1,0,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,1,1,1,1,0],[1,1,1,1,1,1,1],[0,1,0,1,0,1,0]],
+];
+
+// 16 color options (doubled from before)
+const TAG_COLORS = [
+  "#ef4444","#f97316","#eab308","#22c55e",
+  "#0047AB","#8b5cf6","#ec4899","#ffffff",
+  "#14b8a6","#06b6d4","#a3e635","#fb923c",
+  "#c084fc","#f43f5e","#94a3b8","#fbbf24",
+];
+
+const CAT_TINTS = [
+  "rgba(34,197,94,.13)","rgba(0,71,171,.16)","rgba(234,179,8,.13)",
+  "rgba(239,68,68,.11)","rgba(139,92,246,.13)","rgba(20,184,166,.12)",
+  "rgba(249,115,22,.12)","rgba(236,72,153,.12)","rgba(99,102,241,.13)",
+];
+const CAT_STRIPE_COLORS = [
+  "#22c55e","#0047AB","#eab308",
+  "#ef4444","#8b5cf6","#14b8a6",
+  "#f97316","#ec4899","#6366f1",
+];
+
+// Draw a pixel icon onto a canvas (21×21 = 3px per pixel of 7×7 grid)
+function drawIcon(canvas, iconIdx, color, bgColor="#00000000", pxSize=3){
+  const grid = ICONS[iconIdx];
+  const sz   = 7 * pxSize;
+  canvas.width  = sz;
+  canvas.height = sz;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,sz,sz);
+  if(bgColor && bgColor!=="transparent" && bgColor!=="00000000"){
+    ctx.fillStyle=bgColor; ctx.fillRect(0,0,sz,sz);
+  }
+  ctx.fillStyle = color;
+  for(let r=0;r<7;r++) for(let c=0;c<7;c++)
+    if(grid[r][c]) ctx.fillRect(c*pxSize, r*pxSize, pxSize, pxSize);
+}
+
+// Draw icon tiled vertically to fill a stripe
+function drawStripe(canvas, iconIdx, color, rowHeight){
+  const pxSize = 3;
+  const iconH  = 7*pxSize; // 21px
+  canvas.width  = 21;
+  canvas.height = rowHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0,0,21,rowHeight);
+  ctx.fillStyle = color;
+  const grid = ICONS[iconIdx];
+  let y = 0;
+  while(y < rowHeight){
+    for(let r=0;r<7;r++) for(let c=0;c<7;c++)
+      if(grid[r][c]) ctx.fillRect(c*pxSize, y+r*pxSize, pxSize, pxSize);
+    y += iconH + 3; // 3px gap between tiles
+  }
+}
+
+// ── LOGIN ICON ANIMATION ─────────────────────────────────────
+const LOGIN_PALETTE = ["#22c55e","#0047AB","#eab308","#ef4444","#8b5cf6","#14b8a6","#f97316","#ec4899"];
+let _loginIconIdx=0, _loginColorIdx=0;
+function animateLoginIcon(){
+  const cvs = el("loginIconCanvas"); if(!cvs) return;
+  drawIcon(cvs, _loginIconIdx, LOGIN_PALETTE[_loginColorIdx], "#000000", 4);
+  _loginIconIdx   = (_loginIconIdx+1)   % ICONS.length;
+  _loginColorIdx  = (_loginColorIdx+3)  % LOGIN_PALETTE.length; // skip 3 for variety
+}
+animateLoginIcon();
+setInterval(animateLoginIcon, 900);
+
+// ── CONSTANTS ────────────────────────────────────────────────
+const DEF_CATS = [
+  {id:"board",name:"Board Games",icon:"♟"},{id:"moba",name:"MOBAs",icon:"⚔"},
+  {id:"shooter",name:"Shooters",icon:"🔫"},{id:"rpg",name:"RPGs",icon:"🧙"},
+  {id:"party",name:"Party Games",icon:"🎉"},{id:"strategy",name:"Strategy",icon:"🏰"},
+  {id:"card",name:"Card Games",icon:"🃏"},{id:"sports",name:"Sports",icon:"⚽"},
+  {id:"other",name:"Other",icon:"🎲"},
+];
+const DEF_GAMES = [
+  {id:"g1",name:"League of Legends",catId:"moba",addedBy:"system"},
+  {id:"g2",name:"Dota 2",catId:"moba",addedBy:"system"},
+  {id:"g3",name:"Valorant",catId:"shooter",addedBy:"system"},
+  {id:"g4",name:"CS2",catId:"shooter",addedBy:"system"},
+  {id:"g5",name:"Catan",catId:"board",addedBy:"system"},
+  {id:"g6",name:"Among Us",catId:"party",addedBy:"system"},
+  {id:"g7",name:"Jackbox",catId:"party",addedBy:"system"},
+  {id:"g8",name:"Elden Ring",catId:"rpg",addedBy:"system"},
+];
+
+// ── STATE ────────────────────────────────────────────────────
+let ME="", gameData={games:[],categories:[]}, allUsers={}, unsubs=[];
+let sortByVotes=false, expCompress=false;
+function loadPrefs(){ try{ const p=JSON.parse(localStorage.getItem("sq_"+ME)||"{}"); sortByVotes=!!p.s; expCompress=!!p.e; }catch(e){} }
+function savePrefs(){ if(!ME) return; try{ localStorage.setItem("sq_"+ME,JSON.stringify({s:sortByVotes,e:expCompress})); }catch(e){} }
+
+// ── AUTH ─────────────────────────────────────────────────────
+async function loginAsync(){
+  const user=el("loginUser").value.trim(), pass=el("loginPass").value.trim();
+  if(!user) throw new Error("Enter a username");
+  if(pass!==GROUP_PASS) throw new Error("Wrong password");
+  if(!await fbGet("users/"+safeKey(user))) throw new Error("User not found — create an account");
+  enterApp(user);
+}
+async function registerAsync(){
+  const user=el("regUser").value.trim(), pass=el("regPass").value.trim();
+  if(!user) throw new Error("Choose a username");
+  if(!/^[a-zA-Z0-9_\- ]{2,20}$/.test(user)) throw new Error("2–20 chars, letters/numbers only");
+  if(pass!==GROUP_PASS) throw new Error("Wrong group password");
+  if(await fbGet("users/"+safeKey(user))) throw new Error("Username taken");
+  if(!await fbGet("gameData")) await fbSet("gameData",{categories:DEF_CATS,games:DEF_GAMES});
+  const gd=await fbGet("gameData"), checks={};
+  toArr(gd.games).forEach(g=>{ checks[g.id]=false; });
+  await fbSet("users/"+safeKey(user),{username:user,checks,favorites:{},active:true});
+  enterApp(user);
+}
+function logout(){
+  unsubs.forEach(u=>u()); unsubs=[];
+  ME=""; allUsers={}; gameData={games:[],categories:[]};
+  sortByVotes=false; expCompress=false;
+  el("appScreen").classList.remove("visible");
+  el("loginScreen").removeAttribute("hidden");
+  el("loginUser").value=el("loginPass").value="";
+  setErr(""); try{el("debugBar").style.display="none";}catch(e){}
+}
+
+// ── ENTER APP ────────────────────────────────────────────────
+function enterApp(username){
+  ME=username; setBusy(false); playLoginSound();
+  el("userAvatar").textContent  = username.slice(0,2).toUpperCase();
+  el("userNameTop").textContent = username;
+  loadPrefs();
+  el("sortToggle").classList.toggle("on",sortByVotes);
+  el("expCompressToggle").classList.toggle("on",expCompress);
+
+  let gdReady=false, usReady=false;
+  function maybeShow(){
+    if(!gdReady||!usReady) return;
+    el("loginScreen").setAttribute("hidden","");
+    el("appScreen").classList.add("visible");
+    renderSidebar(); renderTable();
+  }
+  const u1=onValue(R("gameData"),snap=>{
+    try{
+      const v=snap.val(); if(!v) return;
+      gameData.games=toArr(v.games); gameData.categories=toArr(v.categories);
+      gdReady=true; if(usReady) syncMyData();
+      maybeShow(); if(gdReady&&usReady){renderSidebar();renderTable();}
+    }catch(e){dbg("gd:"+e.message);}
+  },e=>dbg("gd:"+e.message));
+  const u2=onValue(R("users"),snap=>{
+    try{
+      const v=snap.val()||{};
+      allUsers={};
+      Object.entries(v).forEach(([k,u])=>{ if(!u) return; allUsers[u.username||k]=u; });
+      if(!allUsers[ME]) allUsers[ME]={checks:{},favorites:{},active:true};
+      el("onlineCount").textContent=Object.keys(allUsers).length;
+      usReady=true; maybeShow(); if(gdReady&&usReady){renderSidebar();renderTable();}
+    }catch(e){dbg("us:"+e.message);}
+  },e=>dbg("us:"+e.message));
+  unsubs.push(u1,u2);
+}
+function syncMyData(){
+  const me=allUsers[ME]; if(!me) return;
+  let dirty=false;
+  gameData.games.forEach(g=>{ if(!(g.id in (me.checks||{}))){ me.checks=me.checks||{}; me.checks[g.id]=false; dirty=true; } });
+  if(!me.favorites){ me.favorites={}; dirty=true; }
+  if(!("active" in me)){ me.active=true; dirty=true; }
+  if(dirty) fbUpd("users/"+safeKey(ME),{checks:me.checks,favorites:me.favorites,active:me.active});
+}
+function activePlayers(){ return Object.keys(allUsers).filter(u=>allUsers[u]?.active!==false); }
+function calcScore(gid){ return activePlayers().filter(u=>allUsers[u]?.checks?.[gid]===true).length; }
+function myStarCount(){ return Object.values(allUsers[ME]?.favorites||{}).filter(Boolean).length; }
+
+// ── SOUND ────────────────────────────────────────────────────
+const AudioCtx=window.AudioContext||window.webkitAudioContext;
+let _actx=null;
+function getCtx(){ if(!_actx) _actx=new AudioCtx(); return _actx; }
+function playLoginSound(){
+  try{
+    const ctx=getCtx();
+    [523.25,659.25,783.99,1046.50].forEach((freq,i)=>{
+      const t=ctx.currentTime+i*0.1;
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type="sine"; o.frequency.value=freq;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.18,t+0.01); g.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      o.start(t); o.stop(t+0.36);
+    });
+  }catch(e){}
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+function renderSidebar(){
+  if(!ME) return;
+  el("playersList").innerHTML=Object.keys(allUsers).sort().map(u=>{
+    const active=allUsers[u]?.active!==false,isMe=u===ME;
+    return `<div class="player-item ${isMe?"you":""} ${!active?"inactive":""}">
+      <div class="player-left">
+        <div class="player-dot ${isMe?"":"other"}"></div>
+        <span class="player-name-side">${esc(u)}${isMe?' <span class="you-tag">(you)</span>':""}</span>
+      </div>
+      <button class="player-toggle ${active?"on":""}" onclick="togglePlayerActive('${esc(u)}')" title="${active?"Mark absent":"Mark present"}"></button>
+    </div>`;
+  }).join("")||`<div style="font-size:.8rem;color:var(--text2)">No players yet</div>`;
+  el("newGameCat").innerHTML=gameData.categories.map(c=>`<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join("");
+}
+
+// Build an inline img-like element: a canvas with the icon drawn
+function iconEl(iconIdx, color, size=21, pxSize=3){
+  const id = `ic_${iconIdx}_${color.replace("#","")}_${size}`;
+  // Return an HTML string with a data-icon attribute; we'll paint after innerHTML
+  return `<canvas class="icon-canvas" data-icon="${iconIdx}" data-color="${esc(color)}" data-pxsize="${pxSize}" width="${size}" height="${size}" style="width:${size}px;height:${size}px;image-rendering:pixelated;vertical-align:middle;display:inline-block;"></canvas>`;
+}
+
+// Paint all .icon-canvas elements in a container
+function paintIcons(container){
+  container.querySelectorAll("canvas.icon-canvas").forEach(cvs=>{
+    drawIcon(cvs, +cvs.dataset.icon, cvs.dataset.color, "transparent", +cvs.dataset.pxsize);
+  });
+}
+
+// Paint all .stripe-canvas elements
+function paintStripes(container){
+  container.querySelectorAll("canvas.stripe-canvas").forEach(cvs=>{
+    const rowEl = cvs.closest("tr");
+    const h = rowEl ? rowEl.offsetHeight||30 : 30;
+    drawStripe(cvs, +cvs.dataset.icon, cvs.dataset.color, h);
+  });
+}
+
+function gameRow(game,users,active,me,tint,catIdx){
+  const score=calcScore(game.id),total=active.length,allAgree=score===total&&total>0;
+  const cls=!total?"score-low":score/total>=.75?"score-high":score/total>=.4?"score-mid":"score-low";
+  const bg=tint?`style="background:${tint}"`:"";
+
+  const iStarred=me.favorites?.[game.id]===true,iCanStar=myStarCount()<MAX_STARS||iStarred;
+  const starBtn=`<button class="star-btn ${iStarred?"lit":""}" onclick="toggleStar('${game.id}')" ${!iCanStar?"disabled":""}>★</button>`;
+  const starrers=Object.entries(allUsers).filter(([,d])=>d?.favorites?.[game.id]).map(([u])=>u);
+  const starNames=starrers.length?`<span class="star-namelist">${starrers.map(u=>`<span class="star-nametag">${esc(u)}</span>`).join("")}</span>`:"";
+
+  const tag=game.tag;
+  const tagBtn=`<button class="tag-btn ${tag?"has-tag":""}" onclick="openTagPicker('${game.id}',this)" title="Set tag">◌</button>`;
+
+  // Belt stripe: use tag if set, else category color (low opacity via alpha)
+  const stripeIconIdx = tag ? (tag.shapeIdx??0) : (catIdx??0) % ICONS.length;
+  const stripeColor   = tag ? tag.color : CAT_STRIPE_COLORS[catIdx??0 % CAT_STRIPE_COLORS.length];
+  const stripeAlpha   = tag ? "1" : "0.22";
+  const stripeCanvas  = `<canvas class="stripe-canvas" data-icon="${stripeIconIdx}" data-color="${esc(stripeColor)}" width="21" height="30" style="display:block;width:21px;opacity:${stripeAlpha};"></canvas>`;
+
+  const cells=users.map(u=>{
+    const chk=allUsers[u]?.checks?.[game.id]?"checked":"";
+    if(u===ME) return `<td class="check-cell" ${bg}><input type="checkbox" class="game-check" ${chk} onchange="toggleGame('${game.id}',this.checked)"/></td>`;
+    return `<td class="check-cell" ${bg}><input type="checkbox" class="game-check others-check" ${chk} disabled/></td>`;
+  }).join("");
+
+  return `<tr class="${allAgree?"highlight":""} game-row" draggable="true" data-game-id="${game.id}" data-cat-id="${game.catId||""}">
+    <td class="tag-stripe-cell">${stripeCanvas}</td>
+    <td ${bg}><div class="game-name-wrap"><span class="drag-handle">⠇</span>${starBtn}${tagBtn}<span class="game-name">${esc(game.name)}</span>${starNames}</div></td>
+    <td class="score-cell" ${bg}><span class="${cls}">${score}/${total}</span></td>
+    ${cells}
+    <td ${bg}><button class="del-btn" onclick="removeGame('${game.id}')">✕</button></td>
+  </tr>`;
+}
+
+function renderTable(){
+  if(!ME) return;
+  const active=activePlayers(),users=Object.keys(allUsers).sort((a,b)=>a===ME?-1:b===ME?1:a.localeCompare(b)),me=allUsers[ME]||{};
+  el("tableHead").innerHTML=`<tr>
+    <th style="width:21px;padding:0;border-right:1px solid var(--border);"></th>
+    <th class="game-col" style="text-align:left;">Game</th><th>Score</th>
+    ${users.map(u=>`<th class="${u===ME?"you":""} ${allUsers[u]?.active===false?"inactive-col":""}" title="${esc(u)}">${esc(u.length>7?u.slice(0,6)+"…":u)}</th>`).join("")}
+    <th style="width:32px;"></th></tr>`;
+  if(!gameData.games.length){ el("tableBody").innerHTML=""; el("gameTable").style.display="none"; el("emptyState").style.display=""; return; }
+  el("gameTable").style.display=""; el("emptyState").style.display="none";
+
+  const catIdxMap={};
+  gameData.categories.forEach((c,i)=>{ catIdxMap[c.id]=i; });
+
+  let html="";
+  if(sortByVotes){
+    [...gameData.games].sort((a,b)=>calcScore(b.id)-calcScore(a.id)).forEach(g=>{
+      const idx=catIdxMap[g.catId]??0;
+      html+=gameRow(g,users,active,me,CAT_TINTS[idx%CAT_TINTS.length],idx);
+    });
+  } else {
+    const byCat={};
+    gameData.categories.forEach(c=>byCat[c.id]=[]);
+    gameData.games.forEach(g=>(byCat[g.catId]=byCat[g.catId]||[]).push(g));
+    gameData.categories.forEach((cat,idx)=>{
+      const gs=byCat[cat.id]||[], tint=CAT_TINTS[idx%CAT_TINTS.length];
+      html+=`<tr class="cat-row ${expCompress?"cat-compressed":""}" draggable="true" data-cat-id="${cat.id}">
+        <td colspan="${users.length+4}" style="background:${tint}">
+          <div style="display:flex;align-items:center;gap:.4rem;">
+            <span class="drag-handle">⠇</span>
+            <span class="cat-row-label">${cat.icon} ${esc(cat.name)}</span>
+          </div>
+        </td></tr>`;
+      if(expCompress && gs.length){
+        const chips=gs.map(g=>{
+          const voted=me.checks?.[g.id]===true, sc=calcScore(g.id);
+          const tag=g.tag;
+          const chipIcon = tag
+            ? `<canvas class="icon-canvas" data-icon="${tag.shapeIdx??0}" data-color="${esc(tag.color)}" data-pxsize="2" width="14" height="14" style="width:14px;height:14px;image-rendering:pixelated;vertical-align:middle;"></canvas>`
+            : "";
+          return `<span class="compact-chip ${voted?"voted":""}" onclick="toggleGame('${g.id}',${!voted})">${chipIcon}${esc(g.name)}<span class="chip-score">${sc}</span></span>`;
+        }).join("");
+        html+=`<tr class="compressed-body-row" style="background:${tint}">
+          <td class="compressed-cell" colspan="${users.length+4}">
+            <div class="compressed-wrap">${chips}</div>
+          </td></tr>`;
+      } else {
+        gs.forEach(g=>{ html+=gameRow(g,users,active,me,tint,idx); });
+      }
+    });
+  }
+  el("tableBody").innerHTML=html;
+  // Paint all canvases
+  paintIcons(el("tableBody"));
+  // Stripe canvases need row height — paint after a brief layout tick
+  requestAnimationFrame(()=>paintStripes(el("tableBody")));
+  attachDragListeners();
+}
+
+// ── TAG PICKER ───────────────────────────────────────────────
+let _tagId="", _tagShapeIdx=0, _tagColor=TAG_COLORS[0];
+
+function doOpenTagPicker(gameId, btn){
+  _tagId=gameId;
+  const game=gameData.games.find(g=>g.id===gameId);
+  _tagShapeIdx = game?.tag?.shapeIdx ?? 0;
+  _tagColor    = game?.tag?.color    ?? TAG_COLORS[0];
+
+  // Shape grid — canvas per icon
+  el("tagShapeRow").innerHTML = ICONS.map((_,i)=>
+    `<div class="tag-shape-opt ${i===_tagShapeIdx?"sel":""}" onclick="pickShape(${i})">
+      <canvas data-icon="${i}" data-color="${esc(_tagColor)}" data-pxsize="3" width="21" height="21" style="width:21px;height:21px;image-rendering:pixelated;"></canvas>
+    </div>`).join("");
+  paintIcons(el("tagShapeRow"));
+
+  // Color swatches
+  el("tagColorRow").innerHTML = TAG_COLORS.map(c=>
+    `<div class="tag-color-swatch ${c===_tagColor?"sel":""}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join("");
+
+  el("tagHexInput").value=_tagColor;
+  el("tagHexPreview").style.background=_tagColor;
+
+  const r=btn.getBoundingClientRect(), p=el("tagPicker");
+  p.style.display="block";
+  p.style.top=(r.bottom+6)+"px";
+  p.style.left=Math.min(r.left,window.innerWidth-250)+"px";
+}
+
+function doPickShape(i){
+  _tagShapeIdx=i;
+  el("tagShapeRow").querySelectorAll(".tag-shape-opt").forEach((d,idx)=>d.classList.toggle("sel",idx===i));
+  // Repaint all shape canvases with new color
+  el("tagShapeRow").querySelectorAll("canvas").forEach(cvs=>{
+    cvs.dataset.color=_tagColor;
+    drawIcon(cvs,+cvs.dataset.icon,_tagColor,"transparent",3);
+  });
+}
+function doPickColor(c){
+  _tagColor=c;
+  el("tagHexInput").value=c; el("tagHexPreview").style.background=c;
+  el("tagColorRow").querySelectorAll(".tag-color-swatch").forEach(d=>d.classList.toggle("sel",d.style.background===c));
+  // Repaint shape canvases with new color
+  el("tagShapeRow").querySelectorAll("canvas").forEach(cvs=>drawIcon(cvs,+cvs.dataset.icon,c,"transparent",3));
+}
+el("tagHexInput").addEventListener("input",e=>{
+  let v=e.target.value.trim(); if(!v.startsWith("#")) v="#"+v;
+  _tagColor=v; el("tagHexPreview").style.background=v;
+  el("tagShapeRow").querySelectorAll("canvas").forEach(cvs=>drawIcon(cvs,+cvs.dataset.icon,v,"transparent",3));
+});
+function doApplyTag(){
+  if(!_tagId) return;
+  const games=gameData.games.map(g=>g.id===_tagId?{...g,tag:{shapeIdx:_tagShapeIdx,color:_tagColor}}:g);
+  gameData.games=games; fbUpd("gameData",{games}); el("tagPicker").style.display="none";
+}
+function doClearTag(){
+  if(!_tagId) return;
+  const games=gameData.games.map(g=>g.id===_tagId?{...g,tag:null}:g);
+  gameData.games=games; fbUpd("gameData",{games}); el("tagPicker").style.display="none";
+}
+document.addEventListener("click",e=>{
+  const p=el("tagPicker");
+  if(p.style.display!=="none"&&!p.contains(e.target)&&!e.target.classList.contains("tag-btn"))
+    p.style.display="none";
+});
+
+// ── DRAG ─────────────────────────────────────────────────────
+let dragGame=null, dragCat=null;
+function attachDragListeners(){
+  const tb=el("tableBody");
+  tb.querySelectorAll("tr[data-game-id]").forEach(row=>{
+    row.addEventListener("dragstart",e=>{ dragGame=row.dataset.gameId; dragCat=null; setTimeout(()=>row.classList.add("dragging"),0); e.dataTransfer.effectAllowed="move"; });
+    row.addEventListener("dragend",()=>{ row.classList.remove("dragging"); clearDS(); dragGame=null; });
+    row.addEventListener("dragover",e=>{ if(!dragGame) return; e.preventDefault(); clearDS(); row.classList.add(e.clientY<row.getBoundingClientRect().top+row.getBoundingClientRect().height/2?"drag-over-above":"drag-over-below"); });
+    row.addEventListener("drop",e=>{ e.preventDefault(); if(!dragGame||dragGame===row.dataset.gameId) return; reorderGame(dragGame,row.dataset.gameId,row.dataset.catId,e.clientY>=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2); clearDS(); });
+  });
+  tb.querySelectorAll("tr.cat-row").forEach(cr=>{
+    cr.addEventListener("dragstart",e=>{ if(dragGame) return; dragCat=cr.dataset.catId; dragGame=null; setTimeout(()=>cr.classList.add("dragging-cat"),0); e.dataTransfer.effectAllowed="move"; });
+    cr.addEventListener("dragend",()=>{ cr.classList.remove("dragging-cat"); clearDS(); dragCat=null; });
+    cr.addEventListener("dragover",e=>{ e.preventDefault(); clearDS(); if(dragGame) cr.classList.add("drag-over-cat"); else if(dragCat&&dragCat!==cr.dataset.catId) cr.classList.add("drag-over-cat-above"); });
+    cr.addEventListener("drop",e=>{ e.preventDefault(); if(dragGame) moveGameToCat(dragGame,cr.dataset.catId); else if(dragCat&&dragCat!==cr.dataset.catId) reorderCat(dragCat,cr.dataset.catId); clearDS(); });
+  });
+}
+function clearDS(){ el("tableBody").querySelectorAll("tr").forEach(r=>r.classList.remove("drag-over-above","drag-over-below","drag-over-cat","drag-over-cat-above")); }
+function reorderGame(fid,tid,tcid,after){ let g=[...gameData.games]; const fi=g.findIndex(x=>x.id===fid); if(fi<0) return; const[m]=g.splice(fi,1); if(tcid) m.catId=tcid; const ti=g.findIndex(x=>x.id===tid); g.splice(after?ti+1:ti,0,m); gameData.games=g; fbUpd("gameData",{games:g}); }
+function moveGameToCat(gid,catId){ const g=gameData.games.map(x=>x.id===gid?{...x,catId}:x); gameData.games=g; fbUpd("gameData",{games:g}); }
+function reorderCat(fid,bid){ let c=[...gameData.categories]; const fi=c.findIndex(x=>x.id===fid); if(fi<0) return; const[m]=c.splice(fi,1); const ti=c.findIndex(x=>x.id===bid); c.splice(ti,0,m); gameData.categories=c; fbUpd("gameData",{categories:c}); }
+
+// ── ACTIONS ──────────────────────────────────────────────────
+function doToggleGame(gameId,checked){ if(!allUsers[ME]) return; allUsers[ME].checks=allUsers[ME].checks||{}; allUsers[ME].checks[gameId]=checked; fbUpd("users/"+safeKey(ME)+"/checks",{[gameId]:checked}); }
+function doToggleStar(gameId){ const me=allUsers[ME]; if(!me) return; me.favorites=me.favorites||{}; const was=me.favorites[gameId]===true; if(!was&&myStarCount()>=MAX_STARS) return; me.favorites[gameId]=!was; fbUpd("users/"+safeKey(ME)+"/favorites",{[gameId]:!was}); renderSidebar(); renderTable(); }
+function doTogglePlayerActive(username){ const u=allUsers[username]; if(!u) return; u.active=u.active===false; fbUpd("users/"+safeKey(username),{active:u.active}); renderSidebar(); renderTable(); }
+async function doAddGame(){ const name=el("newGameName").value.trim(),catId=el("newGameCat").value; if(!name) return; const id="g"+Date.now(); await fbUpd("gameData",{games:[...gameData.games,{id,name,catId,addedBy:ME}]}); const upd={}; Object.keys(allUsers).forEach(u=>{upd["users/"+safeKey(u)+"/checks/"+id]=false;}); if(Object.keys(upd).length) await update(R("/"),upd); el("newGameName").value=""; }
+async function doRemoveGame(gameId){ await fbUpd("gameData",{games:gameData.games.filter(g=>g.id!==gameId)}); const upd={}; Object.keys(allUsers).forEach(u=>{upd["users/"+safeKey(u)+"/checks/"+gameId]=null;upd["users/"+safeKey(u)+"/favorites/"+gameId]=null;}); if(Object.keys(upd).length) await update(R("/"),upd); }
+async function doAddCategory(){ const name=el("newCatName").value.trim(); if(!name) return; const icons=["🎯","🕹","🎪","🌌","🔮","🏆","💥","🌀"]; const id="cat_"+Date.now(); await fbUpd("gameData",{categories:[...gameData.categories,{id,name,icon:icons[Math.floor(Math.random()*icons.length)]}]}); el("newCatName").value=""; }
+function doOpenAdmin(){ el("adminModal").style.display="flex"; el("adminUserList").innerHTML=Object.keys(allUsers).sort().map(u=>`<div class="admin-user-row"><span class="admin-user-name">${esc(u)}${u===ME?' <span class="you-tag">(you)</span>':""}</span><button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u)}')" ${u===ME?"disabled":""}>Delete</button></div>`).join(""); }
+async function doDeleteUser(username){ if(username===ME) return; if(!confirm(`Delete "${username}"? Cannot be undone.`)) return; await fbDel("users/"+safeKey(username)); doOpenAdmin(); }
+
+// ── BUTTON WIRING ────────────────────────────────────────────
+el("tabLogin")   .addEventListener("click", ()=>switchTab("login"));
+el("tabRegister").addEventListener("click", ()=>switchTab("register"));
+el("sortToggle") .addEventListener("click", ()=>window.toggleSort());
+el("expCompressToggle").addEventListener("click", ()=>window.toggleExpCompress());
+el("loginForm").querySelector(".btn-primary")   .addEventListener("click", ()=>{setBusy(true);loginAsync().catch(e=>{setBusy(false);setErr(e.message);});});
+el("registerForm").querySelector(".btn-primary").addEventListener("click", ()=>{setBusy(true);registerAsync().catch(e=>{setBusy(false);setErr(e.message);});});
+el("manageBtn") .addEventListener("click", ()=>doOpenAdmin());
+el("logoutBtn") .addEventListener("click", ()=>logout());
+el("adminClose").addEventListener("click", ()=>{ el("adminModal").style.display="none"; });
+el("adminModal").addEventListener("click", e=>{ if(e.target===el("adminModal")) el("adminModal").style.display="none"; });
+el("addGameBtn").addEventListener("click", ()=>doAddGame());
+el("addCatBtn") .addEventListener("click", ()=>doAddCategory());
+el("tagClearBtn").addEventListener("click",()=>doClearTag());
+el("tagApplyBtn").addEventListener("click",()=>doApplyTag());
+</script>
+</body>
+</html>
