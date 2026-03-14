@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQUAD.GG</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000;--bg2:#0a0a0a;--panel:#141414;--panel2:#1a1a1a;
+  --border:#2a2a2a;--border2:#3a3a3a;
+  --text:#fff;--text2:#666;--text3:#999;
+  --green:#22c55e;--red:#ef4444;--yellow:#eab308;
+  --blue:#0047AB;--blue-l:#1a5fd4;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh;-webkit-font-smoothing:antialiased;}
+#loginScreen:not([hidden]){display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;}
+.logo{font-size:clamp(1.8rem,6vw,3.2rem);font-weight:900;letter-spacing:-2px;margin-bottom:.25rem;}
+.logo span{color:var(--green);}
+.tagline{font-size:.8rem;color:var(--text2);letter-spacing:.15em;text-transform:uppercase;margin-bottom:3rem;}
+.login-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:2rem;width:100%;max-width:400px;}
+.tab-row{display:flex;border-bottom:1px solid var(--border);margin-bottom:1.75rem;}
+.tab-btn{flex:1;background:none;border:none;color:var(--text2);font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.65rem;cursor:pointer;transition:color .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab-btn.active{color:#fff;border-bottom-color:#fff;}
+.tab-btn:hover:not(.active){color:var(--text3);}
+.form-group{margin-bottom:1rem;}
+.form-label{display:block;font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:.4rem;}
+.form-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:#fff;font-family:'Inter',sans-serif;font-size:.9rem;padding:.65rem .85rem;outline:none;border-radius:6px;transition:border-color .15s;}
+.form-input:focus{border-color:var(--blue-l);}
+.form-input::placeholder{color:var(--text2);}
+.error-msg{font-size:.78rem;color:var(--red);margin-top:.85rem;text-align:center;min-height:1.2em;font-weight:500;}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;background:none;border:1px solid var(--border2);color:var(--text3);font-family:'Inter',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem 1.1rem;cursor:pointer;border-radius:6px;transition:all .15s;white-space:nowrap;}
+.btn:hover{border-color:#fff;color:#fff;background:rgba(255,255,255,.04);}
+.btn-full{width:100%;}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff;}
+.btn-primary:hover{background:var(--blue-l);border-color:var(--blue-l);color:#fff;}
+.btn-danger{border-color:var(--red);color:var(--red);}
+.btn-danger:hover{background:rgba(239,68,68,.08);}
+.btn-sm{padding:.35rem .7rem;font-size:.65rem;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn:disabled:hover{background:none;border-color:var(--border2);color:var(--text2);}
+.toggle-wrap{display:flex;align-items:center;gap:.5rem;}
+.toggle-wrap span{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);}
+.toggle-sw{width:36px;height:19px;border-radius:10px;background:var(--border2);position:relative;cursor:pointer;border:none;outline:none;transition:background .18s;flex-shrink:0;}
+.toggle-sw::after{content:'';position:absolute;width:13px;height:13px;border-radius:50%;background:var(--text2);top:3px;left:3px;transition:all .18s;}
+.toggle-sw.on{background:rgba(34,197,94,.3);}
+.toggle-sw.on::after{left:20px;background:var(--green);}
+#appScreen{display:none;}
+#appScreen.visible{display:block!important;}
+.topbar{background:var(--bg);border-bottom:1px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-size:1rem;font-weight:900;letter-spacing:-1px;}
+.topbar-logo span{color:var(--green);}
+.user-pill{display:flex;align-items:center;gap:.5rem;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:.3rem .75rem .3rem .3rem;}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name-top{font-size:.8rem;font-weight:600;}
+.app-layout{display:grid;grid-template-columns:240px 1fr;min-height:calc(100vh - 49px);}
+.sidebar{background:var(--bg);border-right:1px solid var(--border);padding:1.25rem 1rem;overflow-y:auto;max-height:calc(100vh - 49px);position:sticky;top:49px;}
+.sidebar-section{margin-bottom:2rem;}
+.sidebar-title{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border);}
+.player-item{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.4rem .5rem;border-radius:6px;margin-bottom:.25rem;border:1px solid transparent;transition:background .1s;}
+.player-item:hover{background:var(--panel);}
+.player-item.you{background:var(--panel);border-color:var(--border);}
+.player-item.inactive{opacity:.4;}
+.player-item.inactive .player-name-side{text-decoration:line-through;}
+.player-left{display:flex;align-items:center;gap:.5rem;min-width:0;flex:1;}
+.player-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.player-dot.other{background:var(--blue-l);}
+.player-name-side{font-size:.82rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.you-tag{font-size:.65rem;color:var(--text2);font-weight:400;}
+.player-toggle{width:30px;height:16px;border-radius:8px;background:var(--border2);position:relative;flex-shrink:0;cursor:pointer;border:none;outline:none;transition:background .2s;}
+.player-toggle::after{content:'';position:absolute;width:10px;height:10px;border-radius:50%;background:var(--text2);top:3px;left:3px;transition:all .18s;}
+.player-toggle.on{background:rgba(34,197,94,.25);}
+.player-toggle.on::after{left:17px;background:var(--green);}
+.add-game-form{display:flex;flex-direction:column;gap:.5rem;}
+.form-select{width:100%;background:var(--bg2);border:1px solid var(--border);color:#fff;font-family:'Inter',sans-serif;font-size:.82rem;padding:.5rem .75rem;outline:none;border-radius:6px;cursor:pointer;}
+.form-select option{background:var(--panel);}
+.form-select:focus{border-color:var(--blue-l);}
+.add-row{display:flex;gap:.5rem;}
+.main-content{padding:1.5rem;overflow-x:auto;background:var(--bg2);}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem;}
+.section-title{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px;background:var(--panel);}
+table{border-collapse:collapse;width:100%;min-width:600px;}
+thead th{background:var(--panel2);padding:.6rem .85rem;font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;color:var(--text2);}
+thead th.you{color:var(--green);}
+thead th.game-col{text-align:left;min-width:200px;}
+thead th.inactive-col{opacity:.3;text-decoration:line-through;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .08s;}
+tbody tr:hover{background:rgba(255,255,255,.025);}
+tbody tr.highlight{border-left:2px solid var(--green);}
+td{padding:.55rem .85rem;border-right:1px solid var(--border);vertical-align:middle;}
+.game-name{font-size:.88rem;font-weight:500;}
+.game-name-wrap{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;}
+.score-cell{text-align:center;font-size:.9rem;font-weight:700;min-width:56px;font-variant-numeric:tabular-nums;}
+.score-high{color:var(--green);}
+.score-mid{color:var(--yellow);}
+.score-low{color:var(--text2);}
+.check-cell{text-align:center;}
+.game-check{appearance:none;width:18px;height:18px;border:1.5px solid var(--border2);background:var(--bg2);border-radius:4px;cursor:pointer;position:relative;transition:all .12s;display:inline-block;vertical-align:middle;}
+.game-check:checked{background:var(--green);border-color:var(--green);}
+.game-check:checked::after{content:'';position:absolute;top:2px;left:5px;width:5px;height:9px;border:2px solid #000;border-top:none;border-left:none;transform:rotate(45deg);}
+.game-check:disabled{opacity:.35;cursor:not-allowed;}
+.game-check.others-check{cursor:default;}
+.game-check.others-check:checked{background:var(--blue);border-color:var(--blue);}
+.game-check.others-check:checked::after{border-color:#fff;}
+tr.cat-row td{padding:.3rem .85rem;border-top:1px solid var(--border);}
+.cat-row-label{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);}
+tr.cat-row{cursor:grab;}
+tr.cat-row.dragging-cat{opacity:.35;}
+.star-btn{background:none;border:none;cursor:pointer;font-size:.95rem;line-height:1;padding:0;color:var(--border2);transition:color .12s,transform .12s;}
+.star-btn:hover{color:var(--yellow);transform:scale(1.2);}
+.star-btn.lit{color:var(--yellow);}
+.star-btn:disabled{opacity:.25;cursor:not-allowed;transform:none;}
+.star-namelist{font-size:.62rem;color:var(--yellow);opacity:.8;display:flex;gap:.25rem;flex-wrap:wrap;margin-left:2px;}
+.star-nametag{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);border-radius:3px;padding:0 .3rem;line-height:1.6;}
+
+.tag-picker-popup{position:fixed;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:.85rem;z-index:500;width:210px;box-shadow:0 8px 32px rgba(0,0,0,.7);}
+.tag-picker-popup h4{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:.6rem;}
+.tag-section-label{font-size:.6rem;color:var(--text2);margin-bottom:.35rem;margin-top:.5rem;}
+.tag-shape-row{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.25rem;}
+.tag-shape-opt{width:24px;height:24px;cursor:pointer;border:1.5px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:border-color .12s,background .12s;}
+.tag-shape-opt:hover{border-color:var(--text3);}
+.tag-shape-opt.sel{border-color:#fff;background:rgba(255,255,255,.08);}
+.tag-color-row{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.25rem;}
+.tag-color-swatch{width:20px;height:20px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:border-color .1s;}
+.tag-color-swatch:hover{border-color:var(--text3);}
+.tag-color-swatch.sel{border-color:#fff;}
+.tag-hex-row{display:flex;gap:.4rem;align-items:center;margin:.5rem 0;}
+.tag-hex-input{flex:1;background:var(--bg2);border:1px solid var(--border);color:#fff;font-family:'Inter',sans-serif;font-size:.78rem;padding:.3rem .5rem;border-radius:4px;outline:none;}
+.tag-hex-input:focus{border-color:var(--blue-l);}
+.tag-hex-preview{width:22px;height:22px;border-radius:4px;border:1px solid var(--border2);flex-shrink:0;}
+.tag-picker-actions{display:flex;gap:.4rem;justify-content:flex-end;margin-top:.5rem;}
+.del-btn{background:none;border:none;color:var(--border2);cursor:pointer;font-size:.8rem;padding:.15rem .35rem;transition:color .12s;border-radius:4px;line-height:1;}
+.del-btn:hover{color:var(--red);}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text2);}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;}
+.empty-text{font-size:.85rem;font-weight:500;color:var(--text2);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+.modal-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:1.75rem;width:100%;max-width:460px;position:relative;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem;}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text2);font-size:1.1rem;cursor:pointer;line-height:1;transition:color .12s;}
+.modal-close:hover{color:#fff;}
+.modal-note{font-size:.78rem;color:var(--text2);margin-bottom:1.25rem;line-height:1.6;}
+.admin-user-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;margin-bottom:.3rem;border:1px solid var(--border);border-radius:6px;background:var(--bg2);gap:1rem;}
+.admin-user-name{font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.admin-section{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);}
+.admin-section-title{font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);margin-bottom:.85rem;}
+.exp-row{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding:.5rem 0;}
+.exp-label{font-size:.82rem;font-weight:500;}
+.exp-desc{font-size:.7rem;color:var(--text2);margin-top:.15rem;line-height:1.4;}
+tr.cat-compressed~tr.game-row{display:none;}
+tr.compressed-body-row{display:table-row!important;}
+.compressed-cell{padding:.5rem .85rem!important;}
+.compressed-wrap{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;}
+.compact-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .5rem;border-radius:4px;background:var(--panel2);border:1px solid var(--border);cursor:pointer;font-size:.78rem;font-weight:500;color:var(--text3);transition:all .12s;user-select:none;}
+.compact-chip:hover{border-color:var(--border2);color:#fff;}
+.compact-chip.voted{background:rgba(34,197,94,.1);border-color:var(--green);color:var(--green);}
+.chip-score{font-size:.65rem;opacity:.6;margin-left:.15rem;}
+.compress-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:.75rem;padding:0 .25rem;transition:color .12s;line-height:1;margin-left:.3rem;}
+.compress-btn:hover{color:#fff;}
+.tag-stripe-cell{width:10px!important;min-width:10px!important;max-width:10px!important;padding:0!important;border-right:none!important;transition:opacity .15s;}
+tr.game-row:hover .tag-stripe-cell{opacity:1!important;}
+.tag-btn{background:none;border:none;cursor:pointer;padding:0 2px;line-height:1;opacity:.5;transition:opacity .12s;font-size:.8rem;color:var(--text2);}
+.tag-btn:hover,.tag-btn.has-tag{opacity:1;}
+.drag-handle{cursor:grab;color:var(--border2);font-size:.85rem;padding:0 .3rem 0 0;flex-shrink:0;user-select:none;line-height:1;transition:color .12s;}
+.drag-handle:hover{color:var(--text3);}
+tr.dragging{opacity:.35;}
+tr.drag-over-above td{border-top:2px solid var(--blue-l)!important;}
+tr.drag-over-below td{border-bottom:2px solid var(--blue-l)!important;}
+tr.cat-row.drag-over-cat td{background:rgba(26,95,212,.1)!important;border-top:2px solid var(--blue-l)!important;}
+tr.cat-row.drag-over-cat-above td{border-top:2px solid var(--yellow)!important;}
+#debugBar{display:none;position:fixed;bottom:0;left:0;right:0;background:#1a0000;border-top:1px solid var(--red);color:var(--red);font-size:.72rem;padding:.4rem 1rem;z-index:9998;}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+@media(max-width:768px){.app-layout{grid-template-columns:1fr;}.sidebar{position:static;max-height:none;border-right:none;border-bottom:1px solid var(--border);}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="logo">SQUAD<span>.GG</span></div>
+  <div class="tagline">What are we playing tonight?</div>
+  <div class="login-box">
+    <div class="tab-row">
+      <button class="tab-btn active" id="tabLogin">Login</button>
+      <button class="tab-btn"        id="tabRegister">New Player</button>
+    </div>
+    <div id="loginForm">
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="loginUser" type="text" placeholder="your username" autocomplete="off"/></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="loginPass" type="password" placeholder="group password" autocomplete="off"/></div>
+      <button class="btn btn-primary btn-full">Sign In</button>
+    </div>
+    <div id="registerForm" style="display:none">
+      <div class="form-group"><label class="form-label">Choose Username</label><input class="form-input" id="regUser" type="text" placeholder="your gamer tag" autocomplete="off" maxlength="20"/></div>
+      <div class="form-group"><label class="form-label">Group Password</label><input class="form-input" id="regPass" type="password" placeholder="ask your squad" autocomplete="off"/></div>
+      <button class="btn btn-primary btn-full">Create Account</button>
+    </div>
+    <div class="error-msg" id="authError"></div>
+  </div>
+</div>
+
+<div id="appScreen">
+  <div class="topbar">
+    <div class="topbar-logo">SQUAD<span>.GG</span></div>
+    <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
+      <span style="font-size:.75rem;color:var(--text2);"><span id="onlineCount" style="color:#fff;font-weight:700;">0</span> players</span>
+      <div class="toggle-wrap">
+        <span>Category</span>
+        <button class="toggle-sw" id="sortToggle"></button>
+        <span>By Votes</span>
+      </div>
+      <div class="user-pill">
+        <div class="user-avatar" id="userAvatar">??</div>
+        <span class="user-name-top" id="userNameTop"></span>
+      </div>
+      <button class="btn btn-sm">Manage</button>
+      <button class="btn btn-danger btn-sm">Log out</button>
+    </div>
+  </div>
+  <div class="app-layout">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Players</div>
+        <div id="playersList"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Add Game</div>
+        <div class="add-game-form">
+          <input class="form-input" id="newGameName" placeholder="Game name…" maxlength="40"/>
+          <select class="form-select" id="newGameCat"></select>
+          <button class="btn btn-primary btn-sm">Add Game</button>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Add Category</div>
+        <div class="add-row">
+          <input class="form-input" id="newCatName" placeholder="Category name…" maxlength="24" style="flex:1;font-size:.85rem;padding:.4rem .7rem;"/>
+          <button class="btn btn-sm">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="main-content">
+      <div class="section-header"><div class="section-title">Tonight's Game Board</div></div>
+      <div class="table-wrap">
+        <table id="gameTable"><thead id="tableHead"></thead><tbody id="tableBody"></tbody></table>
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🎮</div>
+        <div class="empty-text">No games yet — add some above</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box">
+    <button class="modal-close">&#x2715;</button>
+    <div class="modal-title">Manage</div>
+    <div class="modal-note">Toggle players absent or remove them from the squad.</div>
+    <div id="adminUserList"></div>
+    <div class="admin-section">
+      <div class="admin-section-title">⚗ Experimental</div>
+      <div class="exp-row">
+        <div>
+          <div class="exp-label">Compressed Categories</div>
+          <div class="exp-desc">Collapse a category into chips — click a name to vote.</div>
+        </div>
+        <button class="toggle-sw" id="expCompressToggle"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tagPicker" style="display:none;" class="tag-picker-popup">
+  <h4>Game Tag</h4>
+  <div class="tag-section-label">Shape</div>
+  <div class="tag-shape-row" id="tagShapeRow"></div>
+  <div class="tag-section-label">Color</div>
+  <div class="tag-color-row" id="tagColorRow"></div>
+  <div class="tag-hex-row">
+    <input class="tag-hex-input" id="tagHexInput" placeholder="#rrggbb" maxlength="7"/>
+    <div class="tag-hex-preview" id="tagHexPreview"></div>
+  </div>
+  <div class="tag-picker-actions">
+    <button class="btn btn-sm btn-danger">Clear</button>
+    <button class="btn btn-sm btn-primary">Apply</button>
+  </div>
+</div>
+
+<div id="debugBar"></div>
+
+<script type="module">
+import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, remove, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── EXPOSE GLOBALS FIRST — before any code that could throw ──
+// These must be the very first executable statements in this module.
+const el = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+function setErr(m){ const e=el("authError"); if(e) e.textContent=m?"⚠ "+m:""; }
+function setBusy(on){ const e=el("authError"); if(e) e.textContent=on?"● Connecting…":""; }
+
+window.switchTab = tab => {
+  el("loginForm").style.display    = tab==="login"    ? "" : "none";
+  el("registerForm").style.display = tab==="register" ? "" : "none";
+  el("tabLogin").classList.toggle("active",    tab==="login");
+  el("tabRegister").classList.toggle("active", tab==="register");
+  setErr("");
+};
+window.doLogin        = () => { setBusy(true); loginAsync().catch(e=>{setBusy(false);setErr(e.message);}); };
+window.doRegister     = () => { setBusy(true); registerAsync().catch(e=>{setBusy(false);setErr(e.message);}); };
+window.doLogout       = () => logout();
+window.toggleSort     = () => { sortByVotes=!sortByVotes; el("sortToggle").classList.toggle("on",sortByVotes); savePrefs(); renderTable(); };
+window.toggleExpCompress = () => { expCompress=!expCompress; if(!expCompress) compressedCats.clear(); el("expCompressToggle").classList.toggle("on",expCompress); savePrefs(); renderTable(); };
+window.toggleCompress    = c => { compressedCats.has(c)?compressedCats.delete(c):compressedCats.add(c); savePrefs(); renderTable(); };
+window.toggleGame        = (g,v) => doToggleGame(g,v);
+window.toggleStar        = g => doToggleStar(g);
+window.togglePlayerActive= u => doTogglePlayerActive(u);
+window.addGame           = () => doAddGame();
+window.removeGame        = g => doRemoveGame(g);
+window.addCategory       = () => doAddCategory();
+window.openAdminModal    = () => doOpenAdmin();
+window.closeAdminModal   = () => { el("adminModal").style.display="none"; };
+window.deleteUser        = u => doDeleteUser(u);
+window.openTagPicker     = (g,b) => doOpenTagPicker(g,b);
+window.pickShape         = s => doPickShape(s);
+window.pickColor         = c => doPickColor(c);
+window.applyTag          = () => doApplyTag();
+window.clearTag          = () => doClearTag();
+
+document.addEventListener("keydown", e => {
+  if(e.key!=="Enter") return;
+  if(el("loginForm")    && el("loginForm").style.display   !=="none") window.doLogin();
+  else if(el("registerForm") && el("registerForm").style.display!=="none") window.doRegister();
+});
+
+// ── FIREBASE INIT ────────────────────────────────────────────
+const app = initializeApp({
+  apiKey:"AIzaSyAsLO-TJCkNQWgL0o-svsp0gNkcHvae3kA",
+  authDomain:"squad-gg-c4db0.firebaseapp.com",
+  databaseURL:"https://squad-gg-c4db0-default-rtdb.firebaseio.com",
+  projectId:"squad-gg-c4db0",
+  storageBucket:"squad-gg-c4db0.firebasestorage.app",
+  messagingSenderId:"4300158061",
+  appId:"1:4300158061:web:a24b658ccfbcaa895cfb64"
+});
+const db = getDatabase(app);
+const GROUP_PASS = "ducksalad";
+const MAX_STARS  = 3;
+
+const R      = p     => ref(db, p);
+const fbGet  = p     => get(R(p)).then(s => s.exists() ? s.val() : null);
+const fbSet  = (p,v) => set(R(p), v);
+const fbUpd  = (p,v) => update(R(p), v);
+const fbDel  = p     => remove(R(p));
+const toArr  = v => !v ? [] : Array.isArray(v) ? v.filter(Boolean) : Object.values(v).filter(Boolean);
+const safeKey= s => s.replace(/[.#$[\]\/]/g,"_");
+
+function dbg(m){ try{const b=el("debugBar");b.style.display="block";b.textContent=m;}catch(e){} console.log("[SQ]",m); }
+
+// ── CONSTANTS ────────────────────────────────────────────────
+const CAT_TINTS = [
+  "rgba(34,197,94,.13)","rgba(0,71,171,.16)","rgba(234,179,8,.13)",
+  "rgba(239,68,68,.11)","rgba(139,92,246,.13)","rgba(20,184,166,.12)",
+  "rgba(249,115,22,.12)","rgba(236,72,153,.12)","rgba(99,102,241,.13)",
+];
+// Map catIdx -> solid color for stripe
+const CAT_STRIPE_COLORS = [
+  "#22c55e","#0047AB","#eab308",
+  "#ef4444","#8b5cf6","#14b8a6",
+  "#f97316","#ec4899","#6366f1",
+];
+const TAG_SHAPES  = ["●","■","▲","◆","★","⬟","⬡","⬢"];
+const TAG_PRESETS = ["#ef4444","#f97316","#eab308","#22c55e","#0047AB","#8b5cf6","#ec4899","#ffffff"];
+const DEF_CATS = [
+  {id:"board",name:"Board Games",icon:"♟"},{id:"moba",name:"MOBAs",icon:"⚔"},
+  {id:"shooter",name:"Shooters",icon:"🔫"},{id:"rpg",name:"RPGs",icon:"🧙"},
+  {id:"party",name:"Party Games",icon:"🎉"},{id:"strategy",name:"Strategy",icon:"🏰"},
+  {id:"card",name:"Card Games",icon:"🃏"},{id:"sports",name:"Sports",icon:"⚽"},
+  {id:"other",name:"Other",icon:"🎲"},
+];
+const DEF_GAMES = [
+  {id:"g1",name:"League of Legends",catId:"moba",addedBy:"system"},
+  {id:"g2",name:"Dota 2",catId:"moba",addedBy:"system"},
+  {id:"g3",name:"Valorant",catId:"shooter",addedBy:"system"},
+  {id:"g4",name:"CS2",catId:"shooter",addedBy:"system"},
+  {id:"g5",name:"Catan",catId:"board",addedBy:"system"},
+  {id:"g6",name:"Among Us",catId:"party",addedBy:"system"},
+  {id:"g7",name:"Jackbox",catId:"party",addedBy:"system"},
+  {id:"g8",name:"Elden Ring",catId:"rpg",addedBy:"system"},
+];
+
+// ── STATE ────────────────────────────────────────────────────
+let ME="", gameData={games:[],categories:[]}, allUsers={}, unsubs=[];
+let sortByVotes=false, expCompress=false, compressedCats=new Set();
+
+function loadPrefs(){ try{ const p=JSON.parse(localStorage.getItem("sq_"+ME)||"{}"); sortByVotes=!!p.s; expCompress=!!p.e; compressedCats=new Set(p.c||[]); }catch(e){} }
+function savePrefs(){ if(!ME) return; try{ localStorage.setItem("sq_"+ME,JSON.stringify({s:sortByVotes,e:expCompress,c:[...compressedCats]})); }catch(e){} }
+
+// ── AUTH ─────────────────────────────────────────────────────
+async function loginAsync(){
+  const user=el("loginUser").value.trim(), pass=el("loginPass").value.trim();
+  if(!user) throw new Error("Enter a username");
+  if(pass!==GROUP_PASS) throw new Error("Wrong password");
+  const exists = await fbGet("users/"+safeKey(user));
+  if(!exists) throw new Error("User not found — create an account");
+  enterApp(user);
+}
+
+async function registerAsync(){
+  const user=el("regUser").value.trim(), pass=el("regPass").value.trim();
+  if(!user) throw new Error("Choose a username");
+  if(!/^[a-zA-Z0-9_\- ]{2,20}$/.test(user)) throw new Error("2–20 chars, letters/numbers only");
+  if(pass!==GROUP_PASS) throw new Error("Wrong group password");
+  if(await fbGet("users/"+safeKey(user))) throw new Error("Username taken");
+  if(!await fbGet("gameData")) await fbSet("gameData",{categories:DEF_CATS,games:DEF_GAMES});
+  const gd = await fbGet("gameData");
+  const checks={};
+  toArr(gd.games).forEach(g=>{ checks[g.id]=false; });
+  await fbSet("users/"+safeKey(user),{username:user,checks,favorites:{},active:true});
+  enterApp(user);
+}
+
+function logout(){
+  unsubs.forEach(u=>u()); unsubs=[];
+  ME=""; allUsers={}; gameData={games:[],categories:[]};
+  sortByVotes=false; expCompress=false; compressedCats=new Set();
+  el("appScreen").classList.remove("visible");
+  el("loginScreen").removeAttribute("hidden");
+  el("loginUser").value=el("loginPass").value="";
+  setErr(""); try{el("debugBar").style.display="none";}catch(e){}
+}
+
+// ── ENTER APP ────────────────────────────────────────────────
+function enterApp(username){
+  ME=username; setBusy(false); playLoginSound();
+  el("userAvatar").textContent  = username.slice(0,2).toUpperCase();
+  el("userNameTop").textContent = username;
+  loadPrefs();
+  el("sortToggle").classList.toggle("on",sortByVotes);
+  el("expCompressToggle").classList.toggle("on",expCompress);
+
+  let gdReady=false, usReady=false;
+  function maybeShow(){
+    if(!gdReady||!usReady) return;
+    el("loginScreen").setAttribute("hidden","");
+    el("appScreen").classList.add("visible");
+    renderSidebar(); renderTable();
+  }
+
+  const u1=onValue(R("gameData"),snap=>{
+    try{
+      const v=snap.val(); if(!v) return;
+      gameData.games=toArr(v.games); gameData.categories=toArr(v.categories);
+      gdReady=true; if(usReady) syncMyData();
+      maybeShow(); if(gdReady&&usReady){renderSidebar();renderTable();}
+    }catch(e){dbg("gd:"+e.message);}
+  },e=>dbg("gd:"+e.message));
+
+  const u2=onValue(R("users"),snap=>{
+    try{
+      const v=snap.val()||{};
+      allUsers={};
+      Object.entries(v).forEach(([k,u])=>{ if(!u) return; allUsers[u.username||k]=u; });
+      if(!allUsers[ME]) allUsers[ME]={checks:{},favorites:{},active:true};
+      el("onlineCount").textContent=Object.keys(allUsers).length;
+      usReady=true; maybeShow(); if(gdReady&&usReady){renderSidebar();renderTable();}
+    }catch(e){dbg("us:"+e.message);}
+  },e=>dbg("us:"+e.message));
+
+  unsubs.push(u1,u2);
+}
+
+function syncMyData(){
+  const me=allUsers[ME]; if(!me) return;
+  let dirty=false;
+  gameData.games.forEach(g=>{ if(!(g.id in (me.checks||{}))){ me.checks=me.checks||{}; me.checks[g.id]=false; dirty=true; } });
+  if(!me.favorites){ me.favorites={}; dirty=true; }
+  if(!("active" in me)){ me.active=true; dirty=true; }
+  if(dirty) fbUpd("users/"+safeKey(ME),{checks:me.checks,favorites:me.favorites,active:me.active});
+}
+
+function activePlayers(){ return Object.keys(allUsers).filter(u=>allUsers[u]?.active!==false); }
+function calcScore(gid){ return activePlayers().filter(u=>allUsers[u]?.checks?.[gid]===true).length; }
+function myStarCount(){ return Object.values(allUsers[ME]?.favorites||{}).filter(Boolean).length; }
+
+
+// ── SOUNDS ───────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let _actx = null;
+function getCtx(){ if(!_actx) _actx=new AudioCtx(); return _actx; }
+
+function playLoginSound(){
+  try{
+    const ctx=getCtx();
+    // Three ascending chimes: a little triumphant arpeggio
+    const notes=[523.25,659.25,783.99,1046.50]; // C5 E5 G5 C6
+    notes.forEach((freq,i)=>{
+      const t=ctx.currentTime+i*0.1;
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type="sine";
+      osc.frequency.setValueAtTime(freq,t);
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.18,t+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001,t+0.35);
+      osc.start(t); osc.stop(t+0.36);
+    });
+    // Soft shimmer layer on top
+    const t2=ctx.currentTime+0.3;
+    const osc2=ctx.createOscillator();
+    const gain2=ctx.createGain();
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    osc2.type="sine"; osc2.frequency.value=2093; // C7 shimmer
+    gain2.gain.setValueAtTime(0,t2);
+    gain2.gain.linearRampToValueAtTime(0.07,t2+0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.001,t2+0.4);
+    osc2.start(t2); osc2.stop(t2+0.41);
+  }catch(e){}
+}
+
+function playToggleSound(on){
+  try{
+    const ctx=getCtx();
+    const t=ctx.currentTime;
+    // Click transient
+    const buf=ctx.createBuffer(1,ctx.sampleRate*0.06,ctx.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<data.length;i++){
+      data[i]=(Math.random()*2-1)*Math.pow(1-i/data.length,8)*0.4;
+    }
+    const src=ctx.createBufferSource();
+    src.buffer=buf;
+    const filt=ctx.createBiquadFilter();
+    filt.type="bandpass";
+    filt.frequency.value=on?2200:1400;
+    filt.Q.value=1.5;
+    src.connect(filt); filt.connect(ctx.destination);
+    src.start(t);
+    // Tone blip
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type="sine";
+    osc.frequency.setValueAtTime(on?880:660,t);
+    osc.frequency.exponentialRampToValueAtTime(on?1100:500,t+0.04);
+    gain.gain.setValueAtTime(0.12,t);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+    osc.start(t); osc.stop(t+0.09);
+  }catch(e){}
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+function renderSidebar(){
+  if(!ME) return;
+  el("playersList").innerHTML=Object.keys(allUsers).sort().map(u=>{
+    const active=allUsers[u]?.active!==false,isMe=u===ME;
+    return `<div class="player-item ${isMe?"you":""} ${!active?"inactive":""}">
+      <div class="player-left">
+        <div class="player-dot ${isMe?"":"other"}"></div>
+        <span class="player-name-side">${esc(u)}${isMe?' <span class="you-tag">(you)</span>':""}</span>
+      </div>
+      <button class="player-toggle ${active?"on":""}" onclick="togglePlayerActive('${esc(u)}')" title="${active?"Mark absent":"Mark present"}"></button>
+    </div>`;
+  }).join("")||`<div style="font-size:.8rem;color:var(--text2)">No players yet</div>`;
+  el("newGameCat").innerHTML=gameData.categories.map(c=>`<option value="${c.id}">${c.icon} ${esc(c.name)}</option>`).join("");
+}
+
+function tagSvg(tag,size=12){
+  if(!tag||!tag.shape||!tag.color) return "";
+  return `<svg width="${size}" height="${size}" viewBox="0 0 12 12" style="flex-shrink:0;vertical-align:middle;display:inline-block;"><text x="6" y="10" text-anchor="middle" font-size="11" fill="${esc(tag.color)}">${esc(tag.shape)}</text></svg>`;
+}
+
+function gameRow(game,users,active,me,tint,catIdx){
+  const score=calcScore(game.id),total=active.length,allAgree=score===total&&total>0;
+  const cls=!total?"score-low":score/total>=.75?"score-high":score/total>=.4?"score-mid":"score-low";
+  const bg=tint?`style="background:${tint}"`:"";
+  const iStarred=me.favorites?.[game.id]===true,iCanStar=myStarCount()<MAX_STARS||iStarred;
+  const starBtn=`<button class="star-btn ${iStarred?"lit":""}" onclick="toggleStar('${game.id}')" ${!iCanStar?"disabled":""}>★</button>`;
+  const starrers=Object.entries(allUsers).filter(([,d])=>d?.favorites?.[game.id]).map(([u])=>u);
+  const starNames=starrers.length?`<span class="star-namelist">${starrers.map(u=>`<span class="star-nametag">${esc(u)}</span>`).join("")}</span>`:"";
+  const tag=game.tag;
+  const tagBtn=`<button class="tag-btn ${tag?"has-tag":""}" onclick="openTagPicker('${game.id}',this)" title="Set tag">${tag?"◌":"◌"}</button>`;
+  const stripeColor = tag ? tag.color : (catIdx!=null ? CAT_STRIPE_COLORS[catIdx%CAT_STRIPE_COLORS.length] : "#333");
+  const stripeOpacity = tag ? "1" : "0.18";
+  const shapeMask = tag ? `<text x="5" y="13" font-size="11" text-anchor="middle" fill="rgba(0,0,0,0.55)" font-weight="900">${esc(tag.shape)}</text>` : "";
+  const beltStripe = `<td class="tag-stripe-cell" style="padding:0;width:10px;background:${stripeColor};opacity:${stripeOpacity};position:relative;overflow:hidden;">
+    <svg width="10" height="36" viewBox="0 0 10 36" preserveAspectRatio="none" style="display:block;position:absolute;inset:0;width:100%;height:100%;">${shapeMask}</svg>
+  </td>`;
+  const cells=users.map(u=>{
+    const chk=allUsers[u]?.checks?.[game.id]?"checked":"";
+    if(u===ME) return `<td class="check-cell" ${bg}><input type="checkbox" class="game-check" ${chk} onchange="toggleGame('${game.id}',this.checked)"/></td>`;
+    return `<td class="check-cell" ${bg}><input type="checkbox" class="game-check others-check" ${chk} disabled/></td>`;
+  }).join("");
+  return `<tr class="${allAgree?"highlight":""} game-row" draggable="true" data-game-id="${game.id}" data-cat-id="${game.catId||""}">
+    ${beltStripe}
+    <td ${bg}><div class="game-name-wrap"><span class="drag-handle">⠇</span>${starBtn}${tagBtn}<span class="game-name">${esc(game.name)}</span>${starNames}</div></td>
+    <td class="score-cell" ${bg}><span class="${cls}">${score}/${total}</span></td>
+    ${cells}
+    <td ${bg}><button class="del-btn" onclick="removeGame('${game.id}')">✕</button></td>
+  </tr>`;
+}
+
+function renderTable(){
+  if(!ME) return;
+  const active=activePlayers(),users=Object.keys(allUsers).sort((a,b)=>a===ME?-1:b===ME?1:a.localeCompare(b)),me=allUsers[ME]||{};
+  el("tableHead").innerHTML=`<tr>
+    <th class="game-col" style="text-align:left;">Game</th><th>Score</th>
+    ${users.map(u=>`<th class="${u===ME?"you":""} ${allUsers[u]?.active===false?"inactive-col":""}" title="${esc(u)}">${esc(u.length>7?u.slice(0,6)+"…":u)}</th>`).join("")}
+    <th style="width:32px;"></th></tr>`;
+  if(!gameData.games.length){ el("tableBody").innerHTML=""; el("gameTable").style.display="none"; el("emptyState").style.display=""; return; }
+  el("gameTable").style.display=""; el("emptyState").style.display="none";
+  let html="";
+  // catIdx lookup for tint in vote-sort mode
+  const catIdxMap={};
+  gameData.categories.forEach((c,i)=>{ catIdxMap[c.id]=i; });
+
+  if(sortByVotes){
+    [...gameData.games].sort((a,b)=>calcScore(b.id)-calcScore(a.id)).forEach(g=>{
+      const idx=catIdxMap[g.catId]??0;
+      html+=gameRow(g,users,active,me,CAT_TINTS[idx%CAT_TINTS.length],idx);
+    });
+  } else {
+    const byCat={};
+    gameData.categories.forEach(c=>byCat[c.id]=[]);
+    gameData.games.forEach(g=>(byCat[g.catId]=byCat[g.catId]||[]).push(g));
+    gameData.categories.forEach((cat,idx)=>{
+      const gs=byCat[cat.id]||[],tint=CAT_TINTS[idx%CAT_TINTS.length];
+      const isComp=expCompress; // all cats compressed when feature is on
+      const compBtn=""; // no per-cat toggle — all cats show chips when expCompress is on
+      html+=`<tr class="cat-row ${isComp?"cat-compressed":""}" draggable="true" data-cat-id="${cat.id}">
+        <td colspan="${users.length+3}" style="background:${tint}">
+          <div style="display:flex;align-items:center;gap:.4rem;">
+            <span class="drag-handle">⠇</span>
+            <span class="cat-row-label">${cat.icon} ${esc(cat.name)}</span>
+            ${compBtn}
+          </div>
+        </td></tr>`;
+      if(isComp&&gs.length){
+        html+=`<tr class="compressed-body-row" style="background:${tint}">
+          <td class="compressed-cell" colspan="${users.length+3}">
+            <div class="compressed-wrap">${gs.map(g=>{
+              const voted=me.checks?.[g.id]===true,sc=calcScore(g.id);
+              return `<span class="compact-chip ${voted?"voted":""}" onclick="toggleGame('${g.id}',${!voted})">${g.tag?tagSvg(g.tag,10):""}${esc(g.name)}<span class="chip-score">${sc}</span></span>`;
+            }).join("")}</div>
+          </td></tr>`;
+      } else {
+        gs.forEach(g=>{ html+=gameRow(g,users,active,me,tint,idx); });
+      }
+    });
+  }
+  el("tableBody").innerHTML=html;
+  attachDragListeners();
+}
+
+// ── TAG PICKER ───────────────────────────────────────────────
+let _tagId="",_tagShape="●",_tagColor="#ffffff";
+function doOpenTagPicker(gameId,btn){
+  _tagId=gameId;
+  const game=gameData.games.find(g=>g.id===gameId);
+  _tagShape=game?.tag?.shape||"●"; _tagColor=game?.tag?.color||"#ffffff";
+  el("tagShapeRow").innerHTML=TAG_SHAPES.map(s=>`<div class="tag-shape-opt ${s===_tagShape?"sel":""}" onclick="pickShape('${s}')">${s}</div>`).join("");
+  el("tagColorRow").innerHTML=TAG_PRESETS.map(c=>`<div class="tag-color-swatch ${c===_tagColor?"sel":""}" style="background:${c}" onclick="pickColor('${c}')"></div>`).join("");
+  el("tagHexInput").value=_tagColor; el("tagHexPreview").style.background=_tagColor;
+  const r=btn.getBoundingClientRect(),p=el("tagPicker");
+  p.style.display="block"; p.style.top=(r.bottom+6)+"px"; p.style.left=Math.min(r.left,window.innerWidth-220)+"px";
+}
+function doPickShape(s){ _tagShape=s; el("tagShapeRow").querySelectorAll(".tag-shape-opt").forEach(e=>e.classList.toggle("sel",e.textContent===s)); }
+function doPickColor(c){ _tagColor=c; el("tagHexInput").value=c; el("tagHexPreview").style.background=c; el("tagColorRow").querySelectorAll(".tag-color-swatch").forEach(e=>e.classList.toggle("sel",e.style.background===c)); }
+el("tagHexInput").addEventListener("input",e=>{ let v=e.target.value.trim(); if(!v.startsWith("#")) v="#"+v; _tagColor=v; el("tagHexPreview").style.background=v; });
+function doApplyTag(){ if(!_tagId) return; const games=gameData.games.map(g=>g.id===_tagId?{...g,tag:{shape:_tagShape,color:_tagColor}}:g); gameData.games=games; fbUpd("gameData",{games}); el("tagPicker").style.display="none"; }
+function doClearTag(){ if(!_tagId) return; const games=gameData.games.map(g=>g.id===_tagId?{...g,tag:null}:g); gameData.games=games; fbUpd("gameData",{games}); el("tagPicker").style.display="none"; }
+document.addEventListener("click",e=>{
+  if(e.target.classList.contains("player-toggle")||e.target.classList.contains("toggle-sw")){
+    // small delay so classList reflects new state after the handler runs
+    setTimeout(()=>playToggleSound(e.target.classList.contains("on")),10);
+  }
+});
+document.addEventListener("click",e=>{ const p=el("tagPicker"); if(p.style.display!=="none"&&!p.contains(e.target)&&!e.target.classList.contains("tag-btn")) p.style.display="none"; });
+
+// ── DRAG ─────────────────────────────────────────────────────
+let dragGame=null,dragCat=null;
+function attachDragListeners(){
+  const tb=el("tableBody");
+  tb.querySelectorAll("tr[data-game-id]").forEach(row=>{
+    row.addEventListener("dragstart",e=>{ dragGame=row.dataset.gameId; dragCat=null; setTimeout(()=>row.classList.add("dragging"),0); e.dataTransfer.effectAllowed="move"; });
+    row.addEventListener("dragend",()=>{ row.classList.remove("dragging"); clearDS(); dragGame=null; });
+    row.addEventListener("dragover",e=>{ if(!dragGame) return; e.preventDefault(); clearDS(); row.classList.add(e.clientY<row.getBoundingClientRect().top+row.getBoundingClientRect().height/2?"drag-over-above":"drag-over-below"); });
+    row.addEventListener("drop",e=>{ e.preventDefault(); if(!dragGame||dragGame===row.dataset.gameId) return; reorderGame(dragGame,row.dataset.gameId,row.dataset.catId,e.clientY>=row.getBoundingClientRect().top+row.getBoundingClientRect().height/2); clearDS(); });
+  });
+  tb.querySelectorAll("tr.cat-row").forEach(cr=>{
+    cr.addEventListener("dragstart",e=>{ if(dragGame) return; dragCat=cr.dataset.catId; dragGame=null; setTimeout(()=>cr.classList.add("dragging-cat"),0); e.dataTransfer.effectAllowed="move"; });
+    cr.addEventListener("dragend",()=>{ cr.classList.remove("dragging-cat"); clearDS(); dragCat=null; });
+    cr.addEventListener("dragover",e=>{ e.preventDefault(); clearDS(); if(dragGame) cr.classList.add("drag-over-cat"); else if(dragCat&&dragCat!==cr.dataset.catId) cr.classList.add("drag-over-cat-above"); });
+    cr.addEventListener("drop",e=>{ e.preventDefault(); if(dragGame) moveGameToCat(dragGame,cr.dataset.catId); else if(dragCat&&dragCat!==cr.dataset.catId) reorderCat(dragCat,cr.dataset.catId); clearDS(); });
+  });
+}
+function clearDS(){ el("tableBody").querySelectorAll("tr").forEach(r=>r.classList.remove("drag-over-above","drag-over-below","drag-over-cat","drag-over-cat-above")); }
+function reorderGame(fid,tid,tcid,after){ let g=[...gameData.games]; const fi=g.findIndex(x=>x.id===fid); if(fi<0) return; const[m]=g.splice(fi,1); if(tcid) m.catId=tcid; const ti=g.findIndex(x=>x.id===tid); g.splice(after?ti+1:ti,0,m); gameData.games=g; fbUpd("gameData",{games:g}); }
+function moveGameToCat(gid,catId){ const g=gameData.games.map(x=>x.id===gid?{...x,catId}:x); gameData.games=g; fbUpd("gameData",{games:g}); }
+function reorderCat(fid,bid){ let c=[...gameData.categories]; const fi=c.findIndex(x=>x.id===fid); if(fi<0) return; const[m]=c.splice(fi,1); const ti=c.findIndex(x=>x.id===bid); c.splice(ti,0,m); gameData.categories=c; fbUpd("gameData",{categories:c}); }
+
+// ── ACTIONS ──────────────────────────────────────────────────
+function doToggleGame(gameId,checked){ if(!allUsers[ME]) return; allUsers[ME].checks=allUsers[ME].checks||{}; allUsers[ME].checks[gameId]=checked; fbUpd("users/"+safeKey(ME)+"/checks",{[gameId]:checked}); }
+function doToggleStar(gameId){ const me=allUsers[ME]; if(!me) return; me.favorites=me.favorites||{}; const was=me.favorites[gameId]===true; if(!was&&myStarCount()>=MAX_STARS) return; me.favorites[gameId]=!was; fbUpd("users/"+safeKey(ME)+"/favorites",{[gameId]:!was}); renderSidebar(); renderTable(); }
+function doTogglePlayerActive(username){ const u=allUsers[username]; if(!u) return; u.active=u.active===false; fbUpd("users/"+safeKey(username),{active:u.active}); renderSidebar(); renderTable(); }
+async function doAddGame(){ const name=el("newGameName").value.trim(),catId=el("newGameCat").value; if(!name) return; const id="g"+Date.now(); await fbUpd("gameData",{games:[...gameData.games,{id,name,catId,addedBy:ME}]}); const upd={}; Object.keys(allUsers).forEach(u=>{upd["users/"+safeKey(u)+"/checks/"+id]=false;}); if(Object.keys(upd).length) await update(R("/"),upd); el("newGameName").value=""; }
+async function doRemoveGame(gameId){ await fbUpd("gameData",{games:gameData.games.filter(g=>g.id!==gameId)}); const upd={}; Object.keys(allUsers).forEach(u=>{upd["users/"+safeKey(u)+"/checks/"+gameId]=null;upd["users/"+safeKey(u)+"/favorites/"+gameId]=null;}); if(Object.keys(upd).length) await update(R("/"),upd); }
+async function doAddCategory(){ const name=el("newCatName").value.trim(); if(!name) return; const icons=["🎯","🕹","🎪","🌌","🔮","🏆","💥","🌀"]; const id="cat_"+Date.now(); await fbUpd("gameData",{categories:[...gameData.categories,{id,name,icon:icons[Math.floor(Math.random()*icons.length)]}]}); el("newCatName").value=""; }
+function doOpenAdmin(){ el("adminModal").style.display="flex"; el("adminUserList").innerHTML=Object.keys(allUsers).sort().map(u=>`<div class="admin-user-row"><span class="admin-user-name">${esc(u)}${u===ME?' <span class="you-tag">(you)</span>':""}</span><button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u)}')" ${u===ME?"disabled":""}>Delete</button></div>`).join(""); el("expCompressToggle").classList.toggle("on",expCompress); }
+async function doDeleteUser(username){ if(username===ME) return; if(!confirm(`Delete "${username}"? Cannot be undone.`)) return; await fbDel("users/"+safeKey(username)); doOpenAdmin(); }
+
+// ── STATIC BUTTON WIRING (replaces onclick attrs) ────────────
+document.getElementById("tabLogin")   .addEventListener("click", ()=>switchTab("login"));
+document.getElementById("tabRegister").addEventListener("click", ()=>switchTab("register"));
+document.getElementById("sortToggle") .addEventListener("click", ()=>{ playToggleSound(!el("sortToggle").classList.contains("on")); window.toggleSort(); });
+document.getElementById("expCompressToggle").addEventListener("click", ()=>{ playToggleSound(!el("expCompressToggle").classList.contains("on")); window.toggleExpCompress(); });
+document.querySelector("#loginForm .btn-primary")   .addEventListener("click", ()=>{setBusy(true);loginAsync().catch(e=>{setBusy(false);setErr(e.message);});});
+document.querySelector("#registerForm .btn-primary").addEventListener("click", ()=>{setBusy(true);registerAsync().catch(e=>{setBusy(false);setErr(e.message);});});
+document.querySelector(".btn-danger.btn-sm[onclick]") && null; // handled below
+document.querySelectorAll(".topbar .btn-sm").forEach(b=>{
+  if(b.id==="sortToggle") return;
+  if(b.textContent.trim()==="Manage")   b.addEventListener("click", ()=>doOpenAdmin());
+  if(b.textContent.trim()==="Log out")  b.addEventListener("click", ()=>logout());
+});
+document.querySelector("#adminModal .modal-close").addEventListener("click", ()=>{ document.getElementById("adminModal").style.display="none"; });
+document.getElementById("adminModal").addEventListener("click", e=>{ if(e.target===document.getElementById("adminModal")) document.getElementById("adminModal").style.display="none"; });
+document.querySelector(".sidebar .btn-primary").addEventListener("click", ()=>doAddGame());
+document.querySelector(".sidebar .add-row .btn").addEventListener("click", ()=>doAddCategory());
+document.querySelector("#tagPicker .btn-danger").addEventListener("click", ()=>doClearTag());
+document.querySelector("#tagPicker .btn-primary").addEventListener("click", ()=>doApplyTag());
+</script>
+</body>
+</html>
