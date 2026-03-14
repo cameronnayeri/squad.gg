@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SQUAD.GG</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<title>bloc</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Outfit:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#000;--bg2:#0a0a0a;--panel:#141414;--panel2:#1a1a1a;
@@ -122,7 +122,7 @@ td{padding:.55rem .85rem;border-right:1px solid var(--border);vertical-align:mid
 .game-check.others-check:checked::after{border-color:#fff;}
 
 /* BELT STRIPE — 21px wide (simulates 7×7 at 3px/pixel) */
-.tag-stripe-cell{width:21px!important;min-width:21px!important;max-width:21px!important;padding:0!important;border-right:1px solid var(--border)!important;overflow:hidden;vertical-align:top;}
+.tag-stripe-cell{width:21px!important;min-width:21px!important;max-width:21px!important;padding:0!important;border-right:1px solid var(--border)!important;overflow:hidden;vertical-align:top;transition:filter .12s;}.tag-stripe-cell:hover{filter:brightness(1.4);}
 .tag-stripe-cell canvas{display:block;width:21px;image-rendering:pixelated;image-rendering:crisp-edges;}
 
 /* CAT ROW */
@@ -139,9 +139,7 @@ tr.cat-row.dragging-cat{opacity:.35;}
 .star-namelist{font-size:.62rem;color:var(--yellow);opacity:.8;display:flex;gap:.25rem;flex-wrap:wrap;margin-left:2px;}
 .star-nametag{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);border-radius:3px;padding:0 .3rem;line-height:1.6;}
 
-/* TAG BTN */
-.tag-btn{background:none;border:none;cursor:pointer;padding:0 2px;line-height:1;opacity:.4;transition:opacity .12s;font-size:.8rem;color:var(--text2);}
-.tag-btn:hover,.tag-btn.has-tag{opacity:1;}
+
 
 /* TAG PICKER */
 .tag-picker-popup{position:fixed;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:.85rem;z-index:500;width:240px;box-shadow:0 8px 32px rgba(0,0,0,.7);}
@@ -213,7 +211,7 @@ tr.cat-row.drag-over-cat-above td{border-top:2px solid var(--yellow)!important;}
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-icon-wrap"><canvas id="loginIconCanvas" width="28" height="28"></canvas></div>
-  <div class="logo">SQUAD<span>.GG</span></div>
+  <div class="logo" style="font-family:'Outfit',sans-serif;font-weight:700;letter-spacing:-3px;font-size:clamp(2.2rem,8vw,4rem);">bloc</div>
   <div class="tagline">What are we playing tonight?</div>
   <div class="login-box">
     <div class="tab-row">
@@ -237,7 +235,7 @@ tr.cat-row.drag-over-cat-above td{border-top:2px solid var(--yellow)!important;}
 <!-- APP -->
 <div id="appScreen">
   <div class="topbar">
-    <div class="topbar-logo">SQUAD<span>.GG</span></div>
+    <div class="topbar-logo" style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.3rem;letter-spacing:-1.5px;">bloc</div>
     <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;">
       <span style="font-size:.75rem;color:var(--text2);"><span id="onlineCount" style="color:#fff;font-weight:700;">0</span> players</span>
       <div class="toggle-wrap">
@@ -320,6 +318,7 @@ tr.cat-row.drag-over-cat-above td{border-top:2px solid var(--yellow)!important;}
 </div>
 
 <div id="debugBar"></div>
+<div style="position:fixed;bottom:.5rem;right:.75rem;font-size:.6rem;color:#333;z-index:9997;pointer-events:none;user-select:none;font-family:'Inter',sans-serif;">v1.0</div>
 
 <script type="module">
 import { initializeApp }  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -693,8 +692,6 @@ function gameRow(game,users,active,me,tint,catIdx){
   const starrers=Object.entries(allUsers).filter(([,d])=>d?.favorites?.[game.id]).map(([u])=>u);
   const starNames=starrers.length?`<span class="star-namelist">${starrers.map(u=>`<span class="star-nametag">${esc(u)}</span>`).join("")}</span>`:"";
 
-  const tagBtn=`<button class="tag-btn ${game.tag?"has-tag":""}" onclick="openTagPicker('${game.id}',this)" title="Set tag">◌</button>`;
-
   // Belt stripe:
   // - No tag: solid category color at low opacity, no icon
   // - Tag set: solid tag color at full opacity with icon as negative space
@@ -717,8 +714,8 @@ function gameRow(game,users,active,me,tint,catIdx){
   }).join("");
 
   return `<tr class="${allAgree?"highlight":""} game-row" draggable="true" data-game-id="${game.id}" data-cat-id="${game.catId||""}">
-    <td class="tag-stripe-cell">${stripeCanvas}</td>
-    <td ${bg}><div class="game-name-wrap"><span class="drag-handle">⠇</span>${starBtn}${tagBtn}<span class="game-name">${esc(game.name)}</span>${starNames}</div></td>
+    <td class="tag-stripe-cell" onclick="openTagPicker('${game.id}',this)" title="Set tag" style="cursor:pointer;">${stripeCanvas}</td>
+    <td ${bg}><div class="game-name-wrap"><span class="drag-handle">⠇</span>${starBtn}<span class="game-name">${esc(game.name)}</span>${starNames}</div></td>
     <td class="score-cell" ${bg}><span class="${cls}">${score}/${total}</span></td>
     ${cells}
     <td ${bg}><button class="del-btn" onclick="removeGame('${game.id}')">✕</button></td>
@@ -791,14 +788,18 @@ function doOpenTagPicker(gameId, btn){
   _tagId=gameId;
   const game=gameData.games.find(g=>g.id===gameId);
   _tagShapeIdx = game?.tag?.shapeIdx ?? 0;
-  _tagColor    = game?.tag?.color    ?? TAG_COLORS[0];
+  // Default to white if no tag set — so icons are always visible on open
+  _tagColor    = game?.tag?.color ?? "#ffffff";
 
-  // Shape grid — canvas per icon
+  // Shape grid — canvas per icon, paint immediately after setting innerHTML
   el("tagShapeRow").innerHTML = ICONS.map((_,i)=>
     `<div class="tag-shape-opt ${i===_tagShapeIdx?"sel":""}" onclick="pickShape(${i})">
-      <canvas data-icon="${i}" data-color="${esc(_tagColor)}" data-pxsize="3" width="21" height="21" style="width:21px;height:21px;image-rendering:pixelated;"></canvas>
+      <canvas data-icon="${i}" data-color="${esc(_tagColor)}" data-pxsize="3" width="21" height="21" style="width:21px;height:21px;image-rendering:pixelated;display:block;"></canvas>
     </div>`).join("");
-  paintIcons(el("tagShapeRow"));
+  // Paint synchronously — icons must be visible immediately on open
+  el("tagShapeRow").querySelectorAll("canvas").forEach(cvs=>{
+    drawIcon(cvs, +cvs.dataset.icon, _tagColor, "transparent", 3);
+  });
 
   // Color swatches
   el("tagColorRow").innerHTML = TAG_COLORS.map(c=>
@@ -807,10 +808,11 @@ function doOpenTagPicker(gameId, btn){
   el("tagHexInput").value=_tagColor;
   el("tagHexPreview").style.background=_tagColor;
 
+  // Position popup near the stripe cell that was clicked
   const r=btn.getBoundingClientRect(), p=el("tagPicker");
   p.style.display="block";
-  p.style.top=(r.bottom+6)+"px";
-  p.style.left=Math.min(r.left,window.innerWidth-250)+"px";
+  p.style.top  = (r.bottom+4)+"px";
+  p.style.left = Math.min(r.right+4, window.innerWidth-250)+"px";
 }
 
 function doPickShape(i){
@@ -846,7 +848,7 @@ function doClearTag(){
 }
 document.addEventListener("click",e=>{
   const p=el("tagPicker");
-  if(p.style.display!=="none"&&!p.contains(e.target)&&!e.target.classList.contains("tag-btn"))
+  if(p.style.display!=="none"&&!p.contains(e.target)&&!e.target.closest(".tag-stripe-cell"))
     p.style.display="none";
 });
 
