@@ -462,22 +462,36 @@ function drawIcon(canvas, iconIdx, color, bgColor="#00000000", pxSize=3){
     if(grid[r][c]) ctx.fillRect(c*pxSize, r*pxSize, pxSize, pxSize);
 }
 
-// Draw icon tiled vertically to fill a stripe
+// Draw a single centered icon as negative space on a solid color stripe.
+// Icon occupies ~50% of row height, pixel-perfect, no tiling.
 function drawStripe(canvas, iconIdx, color, rowHeight){
-  const pxSize = 3;
-  const iconH  = 7*pxSize; // 21px
-  canvas.width  = 21;
+  const W = 21;
+  canvas.width  = W;
   canvas.height = rowHeight;
   const ctx = canvas.getContext("2d");
-  ctx.clearRect(0,0,21,rowHeight);
+
+  // Solid color fill
   ctx.fillStyle = color;
+  ctx.fillRect(0, 0, W, rowHeight);
+
+  // Determine pixel size so icon is ~50% of row height, capped at 2px min
+  // 7 pixels * pxSize should be ~rowHeight/2
+  const pxSize = Math.max(1, Math.floor(rowHeight / 14)); // 7px * 2 = 50%
+  const iconPx = 7 * pxSize; // icon dimension in screen pixels
+
+  // Center the icon
+  const ox = Math.floor((W - iconPx) / 2);
+  const oy = Math.floor((rowHeight - iconPx) / 2);
+
+  // Cut out the icon shape as transparent (destination-out composite)
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.fillStyle = "rgba(0,0,0,1)";
   const grid = ICONS[iconIdx];
-  let y = 0;
-  while(y < rowHeight){
-    for(let r=0;r<7;r++) for(let c=0;c<7;c++)
-      if(grid[r][c]) ctx.fillRect(c*pxSize, y+r*pxSize, pxSize, pxSize);
-    y += iconH + 3; // 3px gap between tiles
-  }
+  for(let r=0;r<7;r++)
+    for(let c=0;c<7;c++)
+      if(grid[r][c])
+        ctx.fillRect(ox + c*pxSize, oy + r*pxSize, pxSize, pxSize);
+  ctx.globalCompositeOperation = "source-over";
 }
 
 // ── LOGIN ICON ANIMATION ─────────────────────────────────────
@@ -643,12 +657,29 @@ function paintIcons(container){
   });
 }
 
-// Paint all .stripe-canvas elements
+// Paint all .stripe-canvas elements — called after layout so row heights are known
 function paintStripes(container){
   container.querySelectorAll("canvas.stripe-canvas").forEach(cvs=>{
-    const rowEl = cvs.closest("tr");
-    const h = rowEl ? rowEl.offsetHeight||30 : 30;
-    drawStripe(cvs, +cvs.dataset.icon, cvs.dataset.color, h);
+    const rowEl  = cvs.closest("tr");
+    const h      = rowEl ? (rowEl.offsetHeight || 32) : 32;
+    const color  = cvs.dataset.color;
+    const hasTag = cvs.dataset.hastag === "1";
+    const iconIdx= parseInt(cvs.dataset.icon, 10);
+
+    cvs.height = h;
+    const ctx = cvs.getContext("2d");
+    ctx.clearRect(0, 0, 21, h);
+
+    if(!hasTag){
+      // Plain stripe: solid color at low opacity, no icon
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle   = color;
+      ctx.fillRect(0, 0, 21, h);
+      ctx.globalAlpha = 1;
+    } else {
+      // Tagged: solid fill + icon knocked out as negative space
+      drawStripe(cvs, iconIdx, color, h);
+    }
   });
 }
 
@@ -662,14 +693,22 @@ function gameRow(game,users,active,me,tint,catIdx){
   const starrers=Object.entries(allUsers).filter(([,d])=>d?.favorites?.[game.id]).map(([u])=>u);
   const starNames=starrers.length?`<span class="star-namelist">${starrers.map(u=>`<span class="star-nametag">${esc(u)}</span>`).join("")}</span>`:"";
 
-  const tag=game.tag;
-  const tagBtn=`<button class="tag-btn ${tag?"has-tag":""}" onclick="openTagPicker('${game.id}',this)" title="Set tag">◌</button>`;
+  const tagBtn=`<button class="tag-btn ${game.tag?"has-tag":""}" onclick="openTagPicker('${game.id}',this)" title="Set tag">◌</button>`;
 
-  // Belt stripe: use tag if set, else category color (low opacity via alpha)
-  const stripeIconIdx = tag ? (tag.shapeIdx??0) : (catIdx??0) % ICONS.length;
-  const stripeColor   = tag ? tag.color : CAT_STRIPE_COLORS[catIdx??0 % CAT_STRIPE_COLORS.length];
-  const stripeAlpha   = tag ? "1" : "0.22";
-  const stripeCanvas  = `<canvas class="stripe-canvas" data-icon="${stripeIconIdx}" data-color="${esc(stripeColor)}" width="21" height="30" style="display:block;width:21px;opacity:${stripeAlpha};"></canvas>`;
+  // Belt stripe:
+  // - No tag: solid category color at low opacity, no icon
+  // - Tag set: solid tag color at full opacity with icon as negative space
+  const tag=game.tag;
+  const hasTag = !!(tag && tag.color);
+  const stripeColor  = hasTag ? tag.color : CAT_STRIPE_COLORS[(catIdx??0) % CAT_STRIPE_COLORS.length];
+  const stripeIconIdx= hasTag ? (tag.shapeIdx ?? 0) : -1;
+  // data-noicon tells paintStripes to skip icon cutout
+  const stripeCanvas = `<canvas class="stripe-canvas"
+    data-icon="${stripeIconIdx}"
+    data-color="${esc(stripeColor)}"
+    data-hastag="${hasTag?1:0}"
+    width="21" height="30"
+    style="display:block;width:21px;"></canvas>`;
 
   const cells=users.map(u=>{
     const chk=allUsers[u]?.checks?.[game.id]?"checked":"";
